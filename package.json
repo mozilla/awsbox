@@ -1,0 +1,19 @@
+{
+  "author": "Lloyd Hilaiel <lloyd@hilaiel.com> (http://lloyd.io)",
+  "name": "awsbox",
+  "description": "A DIYy NodeJS specific PaaS-like system for deploying on AWS",
+  "version": "0.0.1",
+  "homepage": "https://github.com/lloyd/awsbox",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lloyd/awsbox.git"
+  },
+  "main": "src/awsbox.js",
+  "engines": {
+    "node": ">=0.4.7"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+  }
+}
