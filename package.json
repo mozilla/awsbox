@@ -12,8 +12,16 @@
   "engines": {
     "node": ">=0.4.7"
   },
-  "dependencies": {},
+  "dependencies": {
+    "aws-lib": "0.0.5",
+    "JSONSelect": "0.4.0",
+    "temp": "0.4.0",
+    "xml2js": "0.1.13"
+  },
   "devDependencies": {},
   "scripts": {
+  },
+  "bin": {
+    "awsbox": "./awsbox.js"
   }
 }
