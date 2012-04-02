@@ -8,7 +8,9 @@ path = require('path');
 vm = require('./lib/vm.js'),
 key = require('./lib/key.js'),
 ssh = require('./lib/ssh.js'),
-git = require('./lib/git.js');
+git = require('./lib/git.js'),
+optimist = require('optimist'),
+urlparse = require('urlparse');
 
 var verbs = {};
 
@@ -63,17 +65,34 @@ verbs['test'] = function() {
 }
 
 verbs['create'] = function(args) {
-  if (!args || args.length != 1) {
-    throw 'missing required argument: name of instance';
+  var parser = optimist(args)
+    .usage('awsbox create: Create a VM')
+    .describe('n', 'a short nickname for the VM.')
+    .describe('u', 'publically visible URL for the instance')
+    .check(function(argv) {
+      // parse/normalized typed in URL arguments
+      if (argv.u) argv.u = urlparse(argv.u).validate().originOnly().toString();
+    })
+    .describe('t', 'Instance type, dictates VM speed and cost.  i.e. t1.micro or m1.large (see http://aws.amazon.com/ec2/instance-types/)')
+    .default('t', 't1.micro')
+
+  var opts = parser.argv;
+
+  if (opts.h) {
+    parser.showHelp();
+    process.exit(0);
   }
-  var name = args[0];
+
+  var name = opts.n || "noname";
   validateName(name);
   var hostname =  name;
   var longName = process.title + ' deployment (' + name + ')';
 
   console.log("attempting to set up VM \"" + name + "\"");
 
-  vm.startImage(function(err, r) {
+  vm.startImage({
+    type: opts.t
+  }, function(err, r) {
     checkErr(err);
     console.log("   ... VM launched, waiting for startup (should take about 20s)");
 
@@ -83,15 +102,16 @@ verbs['create'] = function(args) {
       vm.setName(r.instanceId, longName, function(err) {
         checkErr(err);
         console.log("   ... name set, waiting for ssh access and configuring");
-        // XXX: allow client to override this
-        var config = { public_url: "http://" + deets.ipAddress };
+        var config = { public_url: (opts.u || "http://" + deets.ipAddress) };
+
+        console.log("   ... public url will be:", config.public_url);
 
         ssh.copyUpConfig(deets.ipAddress, config, function(err, r) {
           checkErr(err);
           console.log("   ... victory!  server is accessible and configured");
           git.addRemote(name, deets.ipAddress, function(err, r) {
             if (err && /already exists/.test(err)) {
-              console.log("OOPS! you already have a git remote named 'test'!");
+              console.log("OOPS! you already have a git remote named '" + name + "test'!");
               console.log("to create a new one: git remote add <name> " +
                           "app@" + deets.ipAddress + ":git");
             } else {

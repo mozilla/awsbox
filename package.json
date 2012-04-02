@@ -16,7 +16,9 @@
     "aws-lib": "0.0.5",
     "JSONSelect": "0.4.0",
     "temp": "0.4.0",
-    "xml2js": "0.1.13"
+    "xml2js": "0.1.13",
+    "optimist": "0.3.1",
+    "urlparse": "0.0.1"
   },
   "devDependencies": {},
   "scripts": {
