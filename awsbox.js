@@ -40,7 +40,7 @@ verbs['destroy'] = function(args) {
   }
   var name = args[0];
   validateName(name);
-  var hostname =  name + ".hacksign.in";
+  var hostname =  name;
 
   process.stdout.write("trying to destroy VM for " + hostname + ": ");
   vm.destroy(name, function(err, deets) {
@@ -68,10 +68,10 @@ verbs['create'] = function(args) {
   }
   var name = args[0];
   validateName(name);
-  var hostname =  name + ".hacksign.in";
+  var hostname =  name;
   var longName = process.title + ' deployment (' + name + ')';
 
-  console.log("attempting to set up " + name + ".hacksign.in");
+  console.log("attempting to set up VM \"" + name + "\"");
 
   vm.startImage(function(err, r) {
     checkErr(err);
@@ -83,7 +83,8 @@ verbs['create'] = function(args) {
       vm.setName(r.instanceId, longName, function(err) {
         checkErr(err);
         console.log("   ... name set, waiting for ssh access and configuring");
-        var config = { public_url: "https://" + name + ".hacksign.in"};
+        // XXX: allow client to override this
+        var config = { public_url: "http://" + deets.ipAddress };
 
         ssh.copyUpConfig(deets.ipAddress, config, function(err, r) {
           checkErr(err);
