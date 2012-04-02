@@ -111,7 +111,7 @@ verbs['create'] = function(args) {
           console.log("   ... victory!  server is accessible and configured");
           git.addRemote(name, deets.ipAddress, function(err, r) {
             if (err && /already exists/.test(err)) {
-              console.log("OOPS! you already have a git remote named '" + name + "test'!");
+              console.log("OOPS! you already have a git remote named '" + name + "'!");
               console.log("to create a new one: git remote add <name> " +
                           "app@" + deets.ipAddress + ":git");
             } else {
