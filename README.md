@@ -86,5 +86,9 @@ environment variables.
 
 ## Learn more
 
-Visit the documentation under `doc/` for more information on how to use awsbox
+Have a look at the [Hello World] sample app.
+
+  [Hello World]: https://github.com/lloyd/awsbox-helloworld
+
+Then visit the documentation under `doc/` for more information on how to use awsbox
 and customize your deployments.
