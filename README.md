@@ -58,27 +58,27 @@ environment variables.
 
 **2.** Add an `.awsbox.json` file to your project that specifies what processes to run
 
-  {
-    "processes": [ "server.js" ]
-  }
+    {
+      "processes": [ "server.js" ]
+    }
 
 **3.** add awsbox to your package.json as a dev dependency
 
-  "devDependencies": {
-    "awsbox": "*"
-  }
+    "devDependencies": {
+      "awsbox": "*"
+    }
 
 **4.** set up your server to bind localhost and defer to the environment for PORT
 
-  app.listen(process.env['PORT'] || 3000, '127.0.0.1');
+    app.listen(process.env['PORT'] || 3000, '127.0.0.1');
 
 **5.** Create a VM
 
-  $ node_modules/.bin/awsbox create -m myvm
+    $ node_modules/.bin/awsbox create -m myvm
 
 **6.** Deploy your code
 
-  $ git push myvm HEAD:master
+    $ git push myvm HEAD:master
 
 **7.** Check out your handiwork!
 
