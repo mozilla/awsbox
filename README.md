@@ -74,7 +74,7 @@ environment variables.
 
 **5.** Create a VM
 
-    $ node_modules/.bin/awsbox create -m myvm
+    $ node_modules/.bin/awsbox create -n myvm
 
 **6.** Deploy your code
 
