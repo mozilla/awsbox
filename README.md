@@ -82,7 +82,7 @@ environment variables.
 
 **7.** Check out your handiwork!
 
-  Visit http://<my ip address> in your web browser.
+  Visit http://&lt;my ip address&gt; in your web browser.
 
 ## Learn more
 
