@@ -36,7 +36,7 @@ from the command line that is pre-configured to run your Node.JS service.
 
 ## Features
 
-  * **nodejs focused** - While other stacks could easily be supported in the future,
+  * **nodejs focused** - While other stacks could be supported in the future,
     awsbox is laser focused on node.js to start.
   * **full root access** - awsbox just gets you started, after that you can do
     Whatever You Want.
