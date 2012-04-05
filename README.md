@@ -46,8 +46,13 @@ from the command line that is pre-configured to run your Node.JS service.
   * **command line or programmatic usage** - type at it, or script it.
   * **OS level user isolation** - all deployed code is run with user permissions under
     a single account.
-  * **nginx forwarding with custom 503 page** - nginx is pre-configured to forward
+  * **HTTP forwarding with custom 503 page** - [http-proxy] is pre-configured to forward
     requests to your nodejs process bound to a local port.
+  * **SSL support** - By default you're process runs with a self-signed cert.  Enabling
+    SSL support is as easy as copying up a private key and certificate in [PEM] format.
+
+  [http-proxy]: https://github.com/nodejitsu/node-http-proxy
+  [PEM]: http://en.wikipedia.org/wiki/X.509
 
 ## Get Started
 
