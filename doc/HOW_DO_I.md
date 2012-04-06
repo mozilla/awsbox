@@ -43,12 +43,14 @@ SSL credentials thusly:
 ssh in as the proxy user and hack out the 5ish lines at the end of the `proxy_server.js`
 file that create an SSL proxy.  Then: `forever restartall`
 
-## How Do I Use SocketIO?
+## How Do I Use WebSockets?
 
-Because we use [http-proxy] for HTTP forwarding, it should Just Work.  Be warned, at time
-of writing this is completely untested.
+Because we use [http-proxy] for HTTP forwarding, it should Just Work.  Have a look at the
+[socket.io example] for a tiny focused example which uses WebSockets via the excellent
+socket.io library.
 
   [http-proxy]: https://github.com/nodejitsu/node-http-proxy
+  [socket.io example]: https://github.com/lloyd/awsbox-socketio-example
 
 ## How Do I Install Software?
 
