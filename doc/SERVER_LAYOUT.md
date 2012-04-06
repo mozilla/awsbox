@@ -33,6 +33,19 @@ home directory is a script named `pristinify.sh`.  This script will
 attempt to return the VM to a "pristine" state and is useful when
 creating custom template images.
 
+## The 'proxy' user
+
+The 'proxy' user is whom a node.js http-proxy bound on ports 80 and 443
+is run that forwards requests to your locally bound nodejs application.
+
+You may scp/ssh in as the proxy user to modify SSL credentials and/or restart
+the proxy server using forever.  The following files are interesting:
+
+  * `key.pem` - PEM encoded SSL private key for the server
+  * `cert.pem` - PEM encoded SSL certificate for the server.
+  * `gen_self_signed.sh` - the script that generates the former two items
+  * `proxy_server.js` - The actual javascript code for the HTTP proxy
+
 ## Installed/Running software
 
 Write me.

@@ -29,6 +29,27 @@ there:
     $ cp -L ~/.ssh/authorized_keys ~/.ssh/foo && mv .ssh/foo .ssh/authorized_keys
     $ # now add the key
 
+## How Do I Enable SSL?
+
+SSL is already enabled with a self signed SSL certificate.  You can update the
+SSL credentials thusly:
+
+    $ scp myprivatekey.pem proxy@[ip address]:key.pem
+    $ scp mycert.pem proxy@[ip address]:cert.pem
+    $ ssh proxy@[ip address] 'forever restartall'
+
+## How Do I Disable SSL?
+
+ssh in as the proxy user and hack out the 5ish lines at the end of the `proxy_server.js`
+file that create an SSL proxy.  Then: `forever restartall`
+
+## How Do I Use SocketIO?
+
+Because we use [http-proxy] for HTTP forwarding, it should Just Work.  Be warned, at time
+of writing this is completely untested.
+
+  [http-proxy]: https://github.com/nodejitsu/node-http-proxy
+
 ## How Do I Install Software?
 
 Use yum.
