@@ -50,9 +50,11 @@ from the command line that is pre-configured to run your Node.JS service.
     requests to your nodejs process bound to a local port.
   * **SSL support** - By default you're process runs with a self-signed cert.  Enabling
     SSL support is as easy as copying up a private key and certificate in [PEM] format.
+  * **WebSocket support** - AWSBOX fully supports WebSockets, via [socket.io] or otherwise.
 
   [http-proxy]: https://github.com/nodejitsu/node-http-proxy
   [PEM]: http://en.wikipedia.org/wiki/X.509
+  [socket.io]: http://socket.io
 
 ## Get Started
 
