@@ -9,6 +9,16 @@ If you use awsbox from an existing project, a git "remote" will
 be added for you with the name of the machine you chose (with the
 -n flag).
 
+## How Do I SSH into my VM?
+
+You can SSH as the user that runs your app:
+
+    $ ssh app@[ip address]
+
+Or as an admin user with sudo privileges
+
+    $ ssh ec2-user@[ip address]
+
 ## How Do I Check My Server Logs?
 
     $ ssh app@[ip address] 'tail -F var/log/*'
