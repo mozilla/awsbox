@@ -27,8 +27,16 @@ The final area of expense is in "add-ons" - service providers that offer
 things like hosted databases, email sending, etc.  A small scale database
 can cost another .015$/hr.
 
-So what we want is the convenience of Heroku, and the pricing and freedom
-of amazon...
+But Wait!  What about [nodejitsu]?  Well, probably use them: they're
+awesome, smart, admirably share their work, have a free service for
+non-commercial deployments, and *just work* for most apps.  But
+sometimes you might want full control.  That you?  Read on...  (NOTE:
+awsbox is *built* on lots of nodejistu stuffs).
+  
+  [nodejitsu]: http://nodejitsu.com/
+
+So what we maybe want is the convenience of Nodejitsu and Heroku, and the
+pricing and freedom of a raw amazon image...
 
 *The solution:* **awsbox** is a set of nodejs scripts, a command line utility,
 and a template image (AMI).  Together it allows you to deploy a new server
