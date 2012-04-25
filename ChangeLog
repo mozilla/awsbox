@@ -1,3 +1,6 @@
+0.0.10 -
+	* /ver.txt again serves the current sha of running code
+
 0.0.9 -
 	* upgrade VM packages
 	* node.js pushed to 0.6.15
