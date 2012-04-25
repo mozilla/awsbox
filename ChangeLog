@@ -1,0 +1,5 @@
+0.0.9 -
+	* upgrade VM packages
+	* node.js pushed to 0.6.15
+	* 50x pages rebranded to awsbox (remove reference to browserid)
+	* security group automatically created renamed 'awsbox security group vX'
