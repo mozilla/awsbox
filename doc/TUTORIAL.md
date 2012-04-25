@@ -2,6 +2,8 @@
 
 Want to try awsbox?  There are a couple things you have to do:
 
+**0.** ``npm install awsbox``
+
 **1.** Create an AWS account and put your `AWS_ID` and `AWS_SECRET` in corresponding
 environment variables.
 
