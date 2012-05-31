@@ -140,7 +140,16 @@ verbs['create'] = function(args) {
               var postcreate = (awsboxJson.hooks && awsboxJson.hooks.postcreate) || null;
               ssh.runScript(deets.ipAddress, postcreate,  function(err, r) {
                 checkErr(err);
-                printInstructions(name, deets);
+
+                if (opts.p && opts.s) {
+                  console.log("   ... copying up SSL cert");
+                  ssh.copySSL(deets.ipAddress, opts.p, opts.s, function(err) {
+                    checkErr(err);
+                    printInstructions(name, deets);
+                  });
+                } else {
+                  printInstructions(name, deets);
+                }
               });
             });
           });
@@ -162,8 +171,8 @@ verbs['create_ami'] = function(args) {
   console.log("restoring to a pristine state, and creating AMI image from " + name);
 
   vm.describe(name, function(err, deets) {
-    console.log("instance found, ip " + deets.ipAddress + ", restoring");
     checkErr(err);
+    console.log("instance found, ip " + deets.ipAddress + ", restoring");
     ssh.makePristine(deets.ipAddress, function(err) {
       console.log("instance is pristine, creating AMI");
       checkErr(err);
