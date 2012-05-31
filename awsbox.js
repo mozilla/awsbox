@@ -75,6 +75,7 @@ verbs['create'] = function(args) {
       if (argv.u) argv.u = urlparse(argv.u).validate().originOnly().toString();
     })
     .describe('t', 'Instance type, dictates VM speed and cost.  i.e. t1.micro or m1.large (see http://aws.amazon.com/ec2/instance-types/)')
+    .default('t', 't1.micro')
     .describe('p', 'public SSL key (installed automatically when provided)')
     .describe('s', 'secret SSL key (installed automatically when provided)')
     .check(function(argv) {
@@ -85,7 +86,14 @@ verbs['create'] = function(args) {
         if (!path.existsSync(argv.p)) throw "file '" + argv.p + "' doesn't exist";
       }
     })
-    .default('t', 't1.micro')
+    .describe('x', 'path to a json file with Xtra configuration to copy up to ./config.json')
+    .check(function(argv) {
+      if (argv.x) {
+        if (!path.existsSync(argv.x)) throw "file '" + argv.x + "' doesn't exist";
+        var x = JSON.parse(fs.readFileSync(argv.x));
+        if (typeof x !== 'object' || x === null || Array.isArray(x)) throw "-x file must contain a JSON object";
+      }
+    });
 
   var opts = parser.argv;
 
@@ -123,6 +131,14 @@ verbs['create'] = function(args) {
         checkErr(err);
         console.log("   ... name set, waiting for ssh access and configuring");
         var config = { public_url: (opts.u || "http://" + deets.ipAddress) };
+
+        if (argv.x) {
+          console.log("   ... adding addition configuration values");
+          var x = JSON.parse(fs.readFileSync(argv.x));
+          Object.keys(x).forEach(function(key) {
+            config[key] = x[key];
+          });
+        }
 
         console.log("   ... public url will be:", config.public_url);
 
