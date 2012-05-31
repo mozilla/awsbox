@@ -10,7 +10,8 @@ key = require('./lib/key.js'),
 ssh = require('./lib/ssh.js'),
 git = require('./lib/git.js'),
 optimist = require('optimist'),
-urlparse = require('urlparse');
+urlparse = require('urlparse'),
+fs = require('fs');
 
 var verbs = {};
 
@@ -42,7 +43,7 @@ verbs['destroy'] = function(args) {
   }
   var name = args[0];
   validateName(name);
-  var hostname =  name;
+  var hostname = name;
 
   process.stdout.write("trying to destroy VM for " + hostname + ": ");
   vm.destroy(name, function(err, deets) {
@@ -88,6 +89,15 @@ verbs['create'] = function(args) {
   var hostname =  name;
   var longName = process.title + ' deployment (' + name + ')';
 
+  console.log("reading .awsbox.json");
+
+  try { 
+    var awsboxJson = JSON.parse(fs.readFileSync("./.awsbox.json"));
+  } catch(e) {
+    console.log("Fatal error!  Can't read awsbox.json: " + e);
+    process.exit(1);
+  }
+
   console.log("attempting to set up VM \"" + name + "\"");
 
   vm.startImage({
@@ -118,9 +128,44 @@ verbs['create'] = function(args) {
               checkErr(err);
             }
             console.log("   ... and your git remote is all set up");
-            console.log("");
-            printInstructions(name, deets);
+
+            if (awsboxJson.packages) {
+              console.log("   ... finally, installing custom packages: " + awsboxJson.packages.join(', '));
+              console.log("");
+            }
+            ssh.installPackages(deets.ipAddress, awsboxJson.packages, function(err, r) {
+              checkErr(err);
+              printInstructions(name, deets);
+            });
           });
+        });
+      });
+    });
+  });
+};
+
+verbs['create_ami'] = function(args) {
+  if (!args || args.length != 1) {
+    throw 'missing required argument: name of instance';
+  }
+
+  var name = args[0];
+  validateName(name);
+  var hostname = name;
+
+  console.log("restoring to a pristine state, and creating AMI image from " + name);
+  vm.describe(name, function(err, deets) {
+    console.log("instance found, ip " + deets.ipAddress + ", restoring");
+    checkErr(err);
+    ssh.makePristine(deets.ipAddress, function(err) {
+      console.log("instance is pristine, creating AMI");
+      checkErr(err);
+      vm.createAMI(name, function(err, imageId) {
+        checkErr(err);
+        console.log("Created image:", imageId, "- making it public");
+        vm.makeAMIPublic(imageId, function(err, imageId) {      
+          console.log("All done!");
+          checkErr(err);
         });
       });
     });
