@@ -87,7 +87,7 @@ verbs['create'] = function(args) {
   var name = opts.n || "noname";
   validateName(name);
   var hostname =  name;
-  var longName = process.title + ' deployment (' + name + ')';
+  var longName = process.env['USER'] + "'s " + process.title + ' deployment (' + name + ')';
 
   console.log("reading .awsbox.json");
 
@@ -154,6 +154,7 @@ verbs['create_ami'] = function(args) {
   var hostname = name;
 
   console.log("restoring to a pristine state, and creating AMI image from " + name);
+
   vm.describe(name, function(err, deets) {
     console.log("instance found, ip " + deets.ipAddress + ", restoring");
     checkErr(err);
@@ -163,9 +164,20 @@ verbs['create_ami'] = function(args) {
       vm.createAMI(name, function(err, imageId) {
         checkErr(err);
         console.log("Created image:", imageId, "- waiting for creation and making it public (can take a while)");
-        vm.makeAMIPublic(imageId, function(err, imageId) {      
-          console.log("All done!");
+        vm.makeAMIPublic(imageId, function(err) {
+          console.log("  ... still waiting:", err);
+        }, function(err, imageId) {
           checkErr(err);
+          vm.destroy(name, function(err, deets) {
+            checkErr(err);
+            if (deets && deets.ipAddress) {
+              process.stdout.write("trying to remove git remote: ");
+              git.removeRemote(name, deets.ipAddress, function(err) {
+                checkErr(err);
+                console.log("All done!");
+              });
+            }
+          });
         });
       });
     });
