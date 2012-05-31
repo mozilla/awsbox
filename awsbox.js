@@ -75,6 +75,8 @@ verbs['create'] = function(args) {
       if (argv.u) argv.u = urlparse(argv.u).validate().originOnly().toString();
     })
     .describe('t', 'Instance type, dictates VM speed and cost.  i.e. t1.micro or m1.large (see http://aws.amazon.com/ec2/instance-types/)')
+    .describe('p', 'public SSL key (installed automatically when provided)')
+    .describe('s', 'secret SSL key (installed automatically when provided)')
     .default('t', 't1.micro')
 
   var opts = parser.argv;
@@ -135,7 +137,11 @@ verbs['create'] = function(args) {
             }
             ssh.installPackages(deets.ipAddress, awsboxJson.packages, function(err, r) {
               checkErr(err);
-              printInstructions(name, deets);
+              var postcreate = (awsboxJson.hooks && awsboxJson.hooks.postcreate) || null;
+              ssh.runScript(deets.ipAddress, postcreate,  function(err, r) {
+                checkErr(err);
+                printInstructions(name, deets);
+              });
             });
           });
         });
