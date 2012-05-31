@@ -77,6 +77,14 @@ verbs['create'] = function(args) {
     .describe('t', 'Instance type, dictates VM speed and cost.  i.e. t1.micro or m1.large (see http://aws.amazon.com/ec2/instance-types/)')
     .describe('p', 'public SSL key (installed automatically when provided)')
     .describe('s', 'secret SSL key (installed automatically when provided)')
+    .check(function(argv) {
+      // p and s are all or nothing
+      if (argv.s ? !argv.p : argv.p) throw "-p and -s are both required";
+      if (argv.s) {
+        if (!path.existsSync(argv.s)) throw "file '" + argv.s + "' doesn't exist";
+        if (!path.existsSync(argv.p)) throw "file '" + argv.p + "' doesn't exist";
+      }
+    })
     .default('t', 't1.micro')
 
   var opts = parser.argv;
