@@ -86,6 +86,13 @@ verbs['test'] = function() {
   process.stdout.write("Checking AWS access: ");
   vm.list(function(err) {
     console.log(err ? "NOT ok: " + err : "good");
+    
+    if (process.env['ZERIGO_DNS_KEY']) {
+      process.stdout.write("Checking DNS access: ");
+      dns.inUse(process.env['ZERIGO_DNS_KEY'], 'example.com', function(err, res) {
+        console.log(err ? "NOT ok: " + err : "good");        
+      });
+    } 
   });
 }
 
