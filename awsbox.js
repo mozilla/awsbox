@@ -108,6 +108,9 @@ verbs['create'] = function(args) {
     .describe('d', 'setup DNS via zerigo (requires ZERIGO_DNS_KEY in env)')
     .describe('n', 'a short nickname for the VM.')
     .describe('u', 'publically visible URL for the instance')
+    .describe('remote', 'add a git remote')
+    .boolean('remote')
+    .default('remote', true)
     .check(function(argv) {
       // parse/normalized typed in URL arguments
       if (argv.u) argv.u = urlparse(argv.u).validate().originOnly().toString();
@@ -202,16 +205,8 @@ verbs['create'] = function(args) {
             ssh.copyUpConfig(deets.ipAddress, config, function(err, r) {
               checkErr(err);
               console.log("   ... victory!  server is accessible and configured");
-              git.addRemote(name, deets.ipAddress, function(err, r) {
-                if (err && /already exists/.test(err)) {
-                  console.log("OOPS! you already have a git remote named '" + name + "'!");
-                  console.log("to create a new one: git remote add <name> " +
-                              "app@" + deets.ipAddress + ":git");
-                } else {
-                  checkErr(err);
-                }
-                console.log("   ... and your git remote is all set up");
 
+              function postRemote() {
                 if (awsboxJson.packages) {
                   console.log("   ... finally, installing custom packages: " + awsboxJson.packages.join(', '));
                 }
@@ -232,7 +227,23 @@ verbs['create'] = function(args) {
                     }
                   });
                 });
-              });
+              }
+              
+              if (!opts.remote) {
+                postRemote();
+              } else {
+                git.addRemote(name, deets.ipAddress, function(err, r) {
+                  if (err && /already exists/.test(err)) {
+                    console.log("OOPS! you already have a git remote named '" + name + "'!");
+                    console.log("to create a new one: git remote add <name> " +
+                                "app@" + deets.ipAddress + ":git");
+                  } else {
+                    checkErr(err);
+                  }
+                  console.log("   ... and your git remote is all set up");
+                  postRemote();
+                });
+              }
             });
           });
         });
