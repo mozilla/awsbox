@@ -1,3 +1,10 @@
+0.2.0 -
+	* add 'hooks' to .awsbox.json - postcreate, poststart, and postdeploy
+	* add 'packages' to .awsbox.json for `yum install` at VM creation time
+	* allow copying of SSL certs at creation time via cmd line flags
+	* allow modification of ENV via .awsbox.json env key
+	* allow additional parameters to be populated in config.json via -x flag to create
+
 0.0.10 -
 	* /ver.txt again serves the current sha of running code
 
