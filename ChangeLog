@@ -1,3 +1,7 @@
+0.2.4 -
+	* don't output app config during push
+	* small fixes in git.js library
+
 0.2.2 -
 	* add --[no-]remote flag to disable adding of git remotes
 
