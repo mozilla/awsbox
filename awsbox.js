@@ -8,6 +8,7 @@ path = require('path');
 vm = require('./lib/vm.js'),
 key = require('./lib/key.js'),
 ssh = require('./lib/ssh.js'),
+dns = require('./lib/dns.js'),
 git = require('./lib/git.js'),
 optimist = require('optimist'),
 urlparse = require('urlparse'),
@@ -17,17 +18,20 @@ var verbs = {};
 
 function checkErr(err) {
   if (err) {
-    process.stderr.write('fatal error: ' + err + "\n");
+    process.stderr.write('ERRORE FATALE: ' + err + "\n");
     process.exit(1);
   }
 }
 
-function printInstructions(name, deets) {
+function printInstructions(name, host, url, deets) {
+  if (!url) url = 'http://' + deets.ipAddress;
+  if (!host) host = deets.ipAddress;
+  console.log("");
   console.log("Yay!  You have your very own deployment.  Here's the basics:\n");
-  console.log(" 1. deploy your code:  git push " + name + " <mybranch>:master");
-  console.log(" 2. visit your server on the web: http://" + deets.ipAddress);
-  console.log(" 3. ssh in with sudo: ssh ec2-user@" + deets.ipAddress);
-  console.log(" 4. ssh as the deployment user: ssh app@" + deets.ipAddress);
+  console.log(" 1. deploy your code:  git push " + name + " HEAD:master");
+  console.log(" 2. visit your server on the web: " + url);
+  console.log(" 3. ssh in with sudo: ssh ec2-user@" + host);
+  console.log(" 4. ssh as the deployment user: ssh app@" + host);
   console.log("\n Here are your server's details:", JSON.stringify(deets, null, 4));
 }
 
@@ -52,6 +56,26 @@ verbs['destroy'] = function(args) {
       process.stdout.write("trying to remove git remote: ");
       git.removeRemote(name, deets.ipAddress, function(err) {
         console.log(err ? "failed: " + err : "done");
+
+        if (process.env['ZERIGO_DNS_KEY']) {
+          process.stdout.write("trying to remove DNS: ");
+          var dnsKey = process.env['ZERIGO_DNS_KEY'];
+          dns.findByIP(dnsKey, deets.ipAddress, function(err, fqdns) {
+            checkErr(err);
+            if (!fqdns.length) return console.log("no dns entries found");
+            console.log(fqdns.join(', '));
+            function removeNext() {
+              if (!fqdns.length) return;
+              var fqdn = fqdns.shift();
+              process.stdout.write("deleting " + fqdn + ": ");
+              dns.deleteRecord(dnsKey, fqdn, function(err) {
+                console.log(err ? "failed: " + err : "done");                
+                removeNext();
+              });
+            }
+            removeNext();
+          });
+        }
       });
     }
   });
@@ -65,9 +89,16 @@ verbs['test'] = function() {
   });
 }
 
+verbs['findByIP'] = function(args) {
+  dns.findByIP(process.env['ZERIGO_DNS_KEY'], args[0], function(err, fqdns) {
+    console.log(err, fqdns);
+  });
+};
+
 verbs['create'] = function(args) {
   var parser = optimist(args)
     .usage('awsbox create: Create a VM')
+    .describe('d', 'setup DNS via zerigo (requires ZERIGO_DNS_KEY in env)')
     .describe('n', 'a short nickname for the VM.')
     .describe('u', 'publically visible URL for the instance')
     .check(function(argv) {
@@ -112,68 +143,88 @@ verbs['create'] = function(args) {
   try { 
     var awsboxJson = JSON.parse(fs.readFileSync("./.awsbox.json"));
   } catch(e) {
-    console.log("Fatal error!  Can't read awsbox.json: " + e);
-    process.exit(1);
+    checkErr("Can't read awsbox.json: " + e);
   }
 
   console.log("attempting to set up VM \"" + name + "\"");
 
-  vm.startImage({
-    type: opts.t
-  }, function(err, r) {
+  var dnsKey;
+  var dnsHost;
+  if (opts.d) {
+    if (!opts.u) checkErr('-d is meaningless without -u (to set DNS I need a hostname)');
+    if (!process.env['ZERIGO_DNS_KEY']) checkErr('-d requires ZERIGO_DNS_KEY env var');
+    dnsKey = process.env['ZERIGO_DNS_KEY'];
+    dnsHost = urlparse(opts.u).host;
+    console.log("   ... Checking for DNS availability of " + dnsHost);  
+  }
+
+  dns.inUse(dnsKey, dnsHost, function(err, res) {
     checkErr(err);
-    console.log("   ... VM launched, waiting for startup (should take about 20s)");
+    if (res) checkErr('that domain is in use, pointing at ' + res.data);
 
-    vm.waitForInstance(r.instanceId, function(err, deets) {
+    vm.startImage({
+      type: opts.t
+    }, function(err, r) {
       checkErr(err);
-      console.log("   ... Instance ready, setting human readable name in aws");
-      vm.setName(r.instanceId, longName, function(err) {
+      console.log("   ... VM launched, waiting for startup (should take about 20s)");
+
+      vm.waitForInstance(r.instanceId, function(err, deets) {
         checkErr(err);
-        console.log("   ... name set, waiting for ssh access and configuring");
-        var config = { public_url: (opts.u || "http://" + deets.ipAddress) };
 
-        if (argv.x) {
-          console.log("   ... adding addition configuration values");
-          var x = JSON.parse(fs.readFileSync(argv.x));
-          Object.keys(x).forEach(function(key) {
-            config[key] = x[key];
-          });
-        }
+        if (dnsHost) console.log("   ... Adding DNS Record for " + dnsHost);
 
-        console.log("   ... public url will be:", config.public_url);
+        dns.updateRecord(dnsKey, dnsHost, deets.ipAddress, function(err) {
+          checkErr(err ? 'updating DNS: ' + err : err);
 
-        ssh.copyUpConfig(deets.ipAddress, config, function(err, r) {
-          checkErr(err);
-          console.log("   ... victory!  server is accessible and configured");
-          git.addRemote(name, deets.ipAddress, function(err, r) {
-            if (err && /already exists/.test(err)) {
-              console.log("OOPS! you already have a git remote named '" + name + "'!");
-              console.log("to create a new one: git remote add <name> " +
-                          "app@" + deets.ipAddress + ":git");
-            } else {
-              checkErr(err);
+          console.log("   ... Instance ready, setting human readable name in aws");
+          vm.setName(r.instanceId, longName, function(err) {
+            checkErr(err);
+            console.log("   ... name set, waiting for ssh access and configuring");
+            var config = { public_url: (opts.u || "http://" + deets.ipAddress) };
+
+            if (opts.x) {
+              console.log("   ... adding additional configuration values");
+              var x = JSON.parse(fs.readFileSync(opts.x));
+              Object.keys(x).forEach(function(key) {
+                config[key] = x[key];
+              });
             }
-            console.log("   ... and your git remote is all set up");
 
-            if (awsboxJson.packages) {
-              console.log("   ... finally, installing custom packages: " + awsboxJson.packages.join(', '));
-              console.log("");
-            }
-            ssh.installPackages(deets.ipAddress, awsboxJson.packages, function(err, r) {
+            console.log("   ... public url will be:", config.public_url);
+
+            ssh.copyUpConfig(deets.ipAddress, config, function(err, r) {
               checkErr(err);
-              var postcreate = (awsboxJson.hooks && awsboxJson.hooks.postcreate) || null;
-              ssh.runScript(deets.ipAddress, postcreate,  function(err, r) {
-                checkErr(err);
-
-                if (opts.p && opts.s) {
-                  console.log("   ... copying up SSL cert");
-                  ssh.copySSL(deets.ipAddress, opts.p, opts.s, function(err) {
-                    checkErr(err);
-                    printInstructions(name, deets);
-                  });
+              console.log("   ... victory!  server is accessible and configured");
+              git.addRemote(name, deets.ipAddress, function(err, r) {
+                if (err && /already exists/.test(err)) {
+                  console.log("OOPS! you already have a git remote named '" + name + "'!");
+                  console.log("to create a new one: git remote add <name> " +
+                              "app@" + deets.ipAddress + ":git");
                 } else {
-                  printInstructions(name, deets);
+                  checkErr(err);
                 }
+                console.log("   ... and your git remote is all set up");
+
+                if (awsboxJson.packages) {
+                  console.log("   ... finally, installing custom packages: " + awsboxJson.packages.join(', '));
+                }
+                ssh.installPackages(deets.ipAddress, awsboxJson.packages, function(err, r) {
+                  checkErr(err);
+                  var postcreate = (awsboxJson.hooks && awsboxJson.hooks.postcreate) || null;
+                  ssh.runScript(deets.ipAddress, postcreate,  function(err, r) {
+                    checkErr(err);
+
+                    if (opts.p && opts.s) {
+                      console.log("   ... copying up SSL cert");
+                      ssh.copySSL(deets.ipAddress, opts.p, opts.s, function(err) {
+                        checkErr(err);
+                        printInstructions(name, dnsHost, opts.u, deets);
+                      });
+                    } else {
+                      printInstructions(name, dnsHost, opts.u, deets);
+                    }
+                  });
+                });
               });
             });
           });
