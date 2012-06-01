@@ -4,6 +4,7 @@
 	* allow copying of SSL certs at creation time via cmd line flags
 	* allow modification of ENV via .awsbox.json env key
 	* allow additional parameters to be populated in config.json via -x flag to create
+	* add 'create_ami' command to restore an instance to a clean state and create an image from it.
 
 0.0.10 -
 	* /ver.txt again serves the current sha of running code
