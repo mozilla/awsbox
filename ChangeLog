@@ -1,3 +1,6 @@
+0.2.6 -
+	* improve informational density and readability of `list` command
+	
 0.2.5 -
 	* fix bug in dns.js - .update() is a noop iff null parameters are passed in
 	* fix bug in vm.js - .list() should return all instances, even when names collide
