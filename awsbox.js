@@ -12,7 +12,8 @@ dns = require('./lib/dns.js'),
 git = require('./lib/git.js'),
 optimist = require('optimist'),
 urlparse = require('urlparse'),
-fs = require('fs');
+fs = require('fs'),
+relativeDate = require('relative-date');
 
 var verbs = {};
 
@@ -295,7 +296,17 @@ verbs['create_ami'] = function(args) {
 verbs['list'] = function(args) {
   vm.list(function(err, r) {
     checkErr(err);
-    console.log(JSON.stringify(r, null, 2));
+    Object.keys(r).forEach(function(k) {
+      var v = r[k];
+      var dispName = v.name;
+      if (dispName.indexOf(v.instanceId) === -1) dispName += " {" + v.instanceId + "}";
+      console.log(dispName + ":");
+      console.log("  type:\t\t" + v.instanceType);
+      console.log("  IP:\t\t" + v.ipAddress);
+      console.log("  launched:\t" + relativeDate(v.launchTime));
+//      console.log("  ssh key:\t" + v.keyName);
+      console.log("")
+    });
   });
 };
 
