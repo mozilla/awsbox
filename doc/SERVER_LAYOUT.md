@@ -45,6 +45,8 @@ the proxy server using forever.  The following files are interesting:
   * `cert.pem` - PEM encoded SSL certificate for the server.
   * `gen_self_signed.sh` - the script that generates the former two items
   * `proxy_server.js` - The actual javascript code for the HTTP proxy
+  * `config.json` - A tiny JSON config file which can change the SSL
+    behavior of the proxy.
 
 ## Installed/Running software
 

@@ -50,8 +50,24 @@ SSL credentials thusly:
 
 ## How Do I Disable SSL?
 
-ssh in as the proxy user and hack out the 5ish lines at the end of the `proxy_server.js`
-file that create an SSL proxy.  Then: `forever restartall`
+At creation time you can pass `--ssl=disable` to create the instance with SSL
+disabled.
+
+Post creation, you can SSH in as the proxy user, and update config.json to contain:
+
+    { "ssl": "disable" }
+
+Then restart the proxy with `forever restartall`.
+
+## How Do I Force Connections to use SSL?
+
+You can always use HTTP headers (Strict-Transport-Security), but even then, a user's
+first request will not be encrypted.  To cause all HTTP traffic to be redirected
+to HTTPS, you can SSH in as the proxy user and update config.json to contain:
+
+    { "ssl": "force" }
+
+Then restart the proxy with `forever restartall`.
 
 ## How Do I Use WebSockets?
 
