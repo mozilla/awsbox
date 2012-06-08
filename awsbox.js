@@ -128,6 +128,14 @@ verbs['create'] = function(args) {
         if (!path.existsSync(argv.p)) throw "file '" + argv.p + "' doesn't exist";
       }
     })
+    .describe('ssl', 'configure SSL behavior - enable, disable, force')
+    .default('ssl', 'enable')
+    .check(function(argv) {
+      var valid = [ 'enable', 'disable', 'force' ];
+      if (valid.indexOf(argv.ssl) === -1) {
+        throw "ssl must be one of " + valid.join(", ");
+      }
+    })
     .describe('x', 'path to a json file with Xtra configuration to copy up to ./config.json')
     .check(function(argv) {
       if (argv.x) {
@@ -208,24 +216,28 @@ verbs['create'] = function(args) {
               console.log("   ... victory!  server is accessible and configured");
 
               function postRemote() {
-                if (awsboxJson.packages) {
-                  console.log("   ... finally, installing custom packages: " + awsboxJson.packages.join(', '));
-                }
-                ssh.installPackages(deets.ipAddress, awsboxJson.packages, function(err, r) {
+                console.log("   ... configuring SSL behavior (" + opts.ssl + ")");
+                ssh.configureProxy(deets.ipAddress, opts.ssl, function(err, r) {
                   checkErr(err);
-                  var postcreate = (awsboxJson.hooks && awsboxJson.hooks.postcreate) || null;
-                  ssh.runScript(deets.ipAddress, postcreate,  function(err, r) {
+                  if (awsboxJson.packages) {
+                    console.log("   ... finally, installing custom packages: " + awsboxJson.packages.join(', '));
+                  }
+                  ssh.installPackages(deets.ipAddress, awsboxJson.packages, function(err, r) {
                     checkErr(err);
+                    var postcreate = (awsboxJson.hooks && awsboxJson.hooks.postcreate) || null;
+                    ssh.runScript(deets.ipAddress, postcreate,  function(err, r) {
+                      checkErr(err);
 
-                    if (opts.p && opts.s) {
-                      console.log("   ... copying up SSL cert");
-                      ssh.copySSL(deets.ipAddress, opts.p, opts.s, function(err) {
-                        checkErr(err);
+                      if (opts.p && opts.s) {
+                        console.log("   ... copying up SSL cert");
+                        ssh.copySSL(deets.ipAddress, opts.p, opts.s, function(err) {
+                          checkErr(err);
+                          printInstructions(name, dnsHost, opts.u, deets);
+                        });
+                      } else {
                         printInstructions(name, dnsHost, opts.u, deets);
-                      });
-                    } else {
-                      printInstructions(name, dnsHost, opts.u, deets);
-                    }
+                      }
+                    });
                   });
                 });
               }
