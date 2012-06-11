@@ -1,3 +1,6 @@
+0.2.9 -
+	* add a --dnscheck flag to create to disable dns check prior to VM creation
+
 0.2.8 -
 	* fix /ver.txt serving over SSL
 

@@ -107,6 +107,9 @@ verbs['create'] = function(args) {
   var parser = optimist(args)
     .usage('awsbox create: Create a VM')
     .describe('d', 'setup DNS via zerigo (requires ZERIGO_DNS_KEY in env)')
+    .describe('dnscheck', 'whether to check for existing DNS records')
+    .boolean('dnscheck')
+    .default('dnscheck', true)
     .describe('n', 'a short nickname for the VM.')
     .describe('u', 'publically visible URL for the instance')
     .describe('remote', 'add a git remote')
@@ -174,12 +177,16 @@ verbs['create'] = function(args) {
     if (!process.env['ZERIGO_DNS_KEY']) checkErr('-d requires ZERIGO_DNS_KEY env var');
     dnsKey = process.env['ZERIGO_DNS_KEY'];
     dnsHost = urlparse(opts.u).host;
-    console.log("   ... Checking for DNS availability of " + dnsHost);  
+    if (opts.dnscheck) {
+      console.log("   ... Checking for DNS availability of " + dnsHost);  
+    }
   }
 
   dns.inUse(dnsKey, dnsHost, function(err, res) {
     checkErr(err);
-    if (res) checkErr('that domain is in use, pointing at ' + res.data);
+    if (res && opts.dnscheck) {
+      checkErr('that domain is in use, pointing at ' + res.data);
+    }
 
     vm.startImage({
       type: opts.t
