@@ -1,3 +1,6 @@
+0.2.11 -
+	* dns.updateRecord() doesn't fail if no previous record exists
+
 0.2.10 -
 	* dns.updateRecord() now deletes old records before adding
 
