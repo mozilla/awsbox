@@ -1,3 +1,6 @@
+0.2.12 -
+	* amazon can be slow.  increase some timeouts.
+
 0.2.11 -
 	* dns.updateRecord() doesn't fail if no previous record exists
 
