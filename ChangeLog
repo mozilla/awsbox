@@ -1,3 +1,7 @@
+0.2.13 -
+	* passthrough output to console for longer running operations, like running post_create hooks on the server
+	* when a post_create hook exists, output on the console that we're running it
+
 0.2.12 -
 	* amazon can be slow.  increase some timeouts.
 
