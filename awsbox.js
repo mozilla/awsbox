@@ -232,6 +232,9 @@ verbs['create'] = function(args) {
                   ssh.installPackages(deets.ipAddress, awsboxJson.packages, function(err, r) {
                     checkErr(err);
                     var postcreate = (awsboxJson.hooks && awsboxJson.hooks.postcreate) || null;
+                    if (postcreate) {
+                      console.log("   ... running post_create hook");
+                    }
                     ssh.runScript(deets.ipAddress, postcreate,  function(err, r) {
                       checkErr(err);
 
