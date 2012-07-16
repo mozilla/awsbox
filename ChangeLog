@@ -1,3 +1,8 @@
+0.2.14 -
+	* security updates installed at creation time
+	* new template with latest security updates
+	* upgrade to node v0.6.20
+
 0.2.13 -
 	* passthrough output to console for longer running operations, like running post_create hooks on the server
 	* when a post_create hook exists, output on the console that we're running it
