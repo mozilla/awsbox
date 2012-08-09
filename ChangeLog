@@ -1,3 +1,9 @@
+0.2.15 -
+	* security updates
+	* downgrade to node v0.6.17
+	* documentation improvements
+	* fix bug where security updates wouldn't be properly installed at deploy time
+
 0.2.14 -
 	* security updates installed at creation time
 	* new template with latest security updates
