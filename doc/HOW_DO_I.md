@@ -23,7 +23,7 @@ Or as an admin user with sudo privileges
 
     $ ssh app@[ip address] 'tail -F var/log/*'
 
-## How Do I Restart My Server?
+## How Do I Restart The Web Services On My Server?
 
     $ ssh app@[ip address] 'forever restartall'
 
