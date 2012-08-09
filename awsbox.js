@@ -70,7 +70,7 @@ verbs['destroy'] = function(args) {
               var fqdn = fqdns.shift();
               process.stdout.write("deleting " + fqdn + ": ");
               dns.deleteRecord(dnsKey, fqdn, function(err) {
-                console.log(err ? "failed: " + err : "done");                
+                console.log(err ? "failed: " + err : "done");
                 removeNext();
               });
             }
@@ -87,13 +87,13 @@ verbs['test'] = function() {
   process.stdout.write("Checking AWS access: ");
   vm.list(function(err) {
     console.log(err ? "NOT ok: " + err : "good");
-    
+
     if (process.env['ZERIGO_DNS_KEY']) {
       process.stdout.write("Checking DNS access: ");
       dns.inUse(process.env['ZERIGO_DNS_KEY'], 'example.com', function(err, res) {
-        console.log(err ? "NOT ok: " + err : "good");        
+        console.log(err ? "NOT ok: " + err : "good");
       });
-    } 
+    }
   });
 }
 
@@ -158,11 +158,11 @@ verbs['create'] = function(args) {
   var name = opts.n || "noname";
   validateName(name);
   var hostname =  name;
-  var longName = process.env['USER'] + "'s " + process.title + ' deployment (' + name + ')';
+  var longName = process.env['USER'] + "'s awsbox deployment (" + name + ')';
 
   console.log("reading .awsbox.json");
 
-  try { 
+  try {
     var awsboxJson = JSON.parse(fs.readFileSync("./.awsbox.json"));
   } catch(e) {
     checkErr("Can't read awsbox.json: " + e);
@@ -178,7 +178,7 @@ verbs['create'] = function(args) {
     dnsKey = process.env['ZERIGO_DNS_KEY'];
     dnsHost = urlparse(opts.u).host;
     if (opts.dnscheck) {
-      console.log("   ... Checking for DNS availability of " + dnsHost);  
+      console.log("   ... Checking for DNS availability of " + dnsHost);
     }
   }
 
