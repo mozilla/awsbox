@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/lloyd/awsbox.png)](http://travis-ci.org/lloyd/awsbox)
 ## A Lightweight DIY PaaS for Amazon Web Services
 
 Amazon Web Services (AWS) "Elastic Compute Cloud" provides low cost, instant
