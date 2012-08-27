@@ -1,3 +1,8 @@
+0.2.16 -
+	* security updates
+	* new create --keydir option lets you specify a directory filled with public keys that will be added to VM.
+	* more output (when security updates are installed at deployment time)
+
 0.2.15 -
 	* security updates
 	* downgrade to node v0.6.17
