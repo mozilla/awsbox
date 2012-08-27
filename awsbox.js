@@ -316,7 +316,8 @@ verbs['create_ami'] = function(args) {
             if (deets && deets.ipAddress) {
               process.stdout.write("trying to remove git remote: ");
               git.removeRemote(name, deets.ipAddress, function(err) {
-                checkErr(err);
+                // non-fatal
+                if (err) console("failed: " + err);
                 console.log("All done!");
               });
             }
