@@ -111,6 +111,7 @@ verbs['create'] = function(args) {
     .boolean('dnscheck')
     .default('dnscheck', true)
     .describe('n', 'a short nickname for the VM.')
+    .describe('keydir', 'a directory containing files with public keys to be added to the VM')
     .describe('u', 'publically visible URL for the instance')
     .describe('remote', 'add a git remote')
     .boolean('remote')
@@ -222,55 +223,61 @@ verbs['create'] = function(args) {
               checkErr(err);
               console.log("   ... victory!  server is accessible and configured");
 
-              console.log("   ... applying system updates");
-              ssh.updatePackages(deets.ipAddress, function(err, r) {
+              key.addKeysFromDirectory(deets.ipAddress, opts.keydir, function(msg) {
+                console.log("   ... " + msg);
+              }, function(err) {
                 checkErr(err);
 
-                function postRemote() {
-                  console.log("   ... configuring SSL behavior (" + opts.ssl + ")");
-                  ssh.configureProxy(deets.ipAddress, opts.ssl, function(err, r) {
-                    checkErr(err);
-                    if (awsboxJson.packages) {
-                      console.log("   ... finally, installing custom packages: " + awsboxJson.packages.join(', '));
-                    }
-                    ssh.installPackages(deets.ipAddress, awsboxJson.packages, function(err, r) {
-                      checkErr(err);
-                      var postcreate = (awsboxJson.hooks && awsboxJson.hooks.postcreate) || null;
-                      if (postcreate) {
-                        console.log("   ... running post_create hook");
-                      }
-                      ssh.runScript(deets.ipAddress, postcreate,  function(err, r) {
-                        checkErr(err);
+                console.log("   ... applying system updates");
+                ssh.updatePackages(deets.ipAddress, function(err, r) {
+                  checkErr(err);
 
-                        if (opts.p && opts.s) {
-                          console.log("   ... copying up SSL cert");
-                          ssh.copySSL(deets.ipAddress, opts.p, opts.s, function(err) {
-                            checkErr(err);
-                            printInstructions(name, dnsHost, opts.u, deets);
-                          });
-                        } else {
-                          printInstructions(name, dnsHost, opts.u, deets);
+                  function postRemote() {
+                    console.log("   ... configuring SSL behavior (" + opts.ssl + ")");
+                    ssh.configureProxy(deets.ipAddress, opts.ssl, function(err, r) {
+                      checkErr(err);
+                      if (awsboxJson.packages) {
+                        console.log("   ... finally, installing custom packages: " + awsboxJson.packages.join(', '));
+                      }
+                      ssh.installPackages(deets.ipAddress, awsboxJson.packages, function(err, r) {
+                        checkErr(err);
+                        var postcreate = (awsboxJson.hooks && awsboxJson.hooks.postcreate) || null;
+                        if (postcreate) {
+                          console.log("   ... running post_create hook");
                         }
+                        ssh.runScript(deets.ipAddress, postcreate,  function(err, r) {
+                          checkErr(err);
+
+                          if (opts.p && opts.s) {
+                            console.log("   ... copying up SSL cert");
+                            ssh.copySSL(deets.ipAddress, opts.p, opts.s, function(err) {
+                              checkErr(err);
+                              printInstructions(name, dnsHost, opts.u, deets);
+                            });
+                          } else {
+                            printInstructions(name, dnsHost, opts.u, deets);
+                          }
+                        });
                       });
                     });
-                  });
-                }
+                  }
 
-                if (!opts.remote) {
-                  postRemote();
-                } else {
-                  git.addRemote(name, deets.ipAddress, function(err, r) {
-                    if (err && /already exists/.test(err)) {
-                      console.log("OOPS! you already have a git remote named '" + name + "'!");
-                      console.log("to create a new one: git remote add <name> " +
-                                  "app@" + deets.ipAddress + ":git");
-                    } else {
-                      checkErr(err);
-                    }
-                    console.log("   ... and your git remote is all set up");
+                  if (!opts.remote) {
                     postRemote();
-                  });
-                }
+                  } else {
+                    git.addRemote(name, deets.ipAddress, function(err, r) {
+                      if (err && /already exists/.test(err)) {
+                        console.log("OOPS! you already have a git remote named '" + name + "'!");
+                        console.log("to create a new one: git remote add <name> " +
+                                    "app@" + deets.ipAddress + ":git");
+                      } else {
+                        checkErr(err);
+                      }
+                      console.log("   ... and your git remote is all set up");
+                      postRemote();
+                    });
+                  }
+                });
               });
             });
           });
