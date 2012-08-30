@@ -1,3 +1,6 @@
+0.2.17 -
+	* supply an alternate path to your SSH pubkey with the AWSBOX_PUBKEY env variable.
+
 0.2.16 -
 	* security updates
 	* new create --keydir option lets you specify a directory filled with public keys that will be added to VM.
