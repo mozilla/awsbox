@@ -48,6 +48,30 @@ SSL credentials thusly:
     $ scp mycert.pem proxy@[ip address]:cert.pem
     $ ssh proxy@[ip address] 'forever restartall'
 
+Note that if you procure an SSL certificate from someone other than
+one of the root authorities (which in the ephemeral world of awsbox is
+very likely), you'll need to concatenate your issuer's intermediate
+cert with the cert they have granted you.  This enables the person
+visting your site to see that you are trusted by the intermediate, and
+the intermediate is trusted by a root.  Without the intermediate cert
+in the chain, you are nobody.
+
+You can concatenate the files quite simply into a single `.pem`:
+
+    cat cert-yoursite.tld.crt > cert.pem
+    cat GrantingAuthorityCert.pem >> cert.pem
+
+Order matters - yours first, then theirs.
+
+In the end, your `cert.pem` file should read like:
+
+    -----BEGIN CERTIFICATE-----
+    your cert blah blah blah
+    -----END CERTIFICATE-----
+    -----BEGIN CERTIFICATE-----
+    intermediate cert herp derp derp herp derp
+    -----END CERTIFICATE-----
+
 ## How Do I Disable SSL?
 
 At creation time you can pass `--ssl=disable` to create the instance with SSL
