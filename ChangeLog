@@ -1,3 +1,7 @@
+0.2.18 -
+	* security updates
+        * when using --keydir, whitelist only files ending in .pub
+
 0.2.17 -
 	* supply an alternate path to your SSH pubkey with the AWSBOX_PUBKEY env variable.
 
