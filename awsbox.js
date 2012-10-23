@@ -103,6 +103,22 @@ verbs['findByIP'] = function(args) {
   });
 };
 
+verbs['zones'] = function(args) {
+  aws.zones(function(err, r) {
+    if (err) {
+      console.log("ERROR:", err);
+      proxess.exit(1);
+    }
+    Object.keys(r).forEach(function(region) {
+      console.log(region, "(" + r[region].endpoint + "):");
+      var zones = r[region].zones;
+      zones.forEach(function(zone) {
+        console.log(" *", zone.name, "(" + zone.state + ")");
+      });
+    });
+  });
+};
+
 verbs['create'] = function(args) {
   var parser = optimist(args)
     .usage('awsbox create: Create a VM')
@@ -351,13 +367,22 @@ if (!error) {
   var verb = process.argv[2];
   if (!verbs[verb]) error = "no such command: " + verb;
   else {
-    try {
-      verbs[verb](process.argv.slice(3));
-    } catch(e) {
-      error = "error running '" + verb + "' command: " + e;
-    }
+    // if there is a region supplied, then let's use it
+    aws.setRegion(process.env['AWS_REGION'], function(err, region) {
+      if (err) {
+        error = err;
+      } else {
+        if (region) console.log("(Using region", region.region + ")");
+        try {
+          verbs[verb](process.argv.slice(3));
+        } catch(e) {
+          error = "error running '" + verb + "' command: " + e;
+        }
+      }
+    });
   }
 }
+
 
 if (error) {
   if (typeof error === 'string') process.stderr.write('fatal error: ' + error + "\n\n");
