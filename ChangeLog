@@ -1,3 +1,8 @@
+0.3.0 -
+	* upgrade to node 0.8.12: #38
+	* gzip support in proxy: #37
+	* preliminary region support - awsbox zones displays all available zones, AWS_REGION configures region, AMI IS NOT YET AVAILABLE EVERYWHERE!
+
 0.2.18 -
 	* security updates
         * when using --keydir, whitelist only files ending in .pub
