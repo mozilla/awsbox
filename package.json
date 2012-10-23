@@ -2,7 +2,7 @@
   "author": "Lloyd Hilaiel <lloyd@hilaiel.com> (http://lloyd.io)",
   "name": "awsbox",
   "description": "A featherweight, DIY, PaaS system for deploying on NodeJS apps on Amazon's EC2",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "homepage": "http://awsbox.org",
   "repository": {
     "type": "git",
