@@ -1,3 +1,6 @@
+0.3.1 -
+	* revert gzip support in proxy, see #37
+
 0.3.0 -
 	* upgrade to node 0.8.12: #38
 	* gzip support in proxy: #37
