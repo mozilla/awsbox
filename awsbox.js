@@ -364,6 +364,37 @@ verbs['list'] = function(args) {
   });
 };
 
+verbs['update'] = function(args) {
+  if (!args || args.length != 1) {
+    throw 'missing required argument: name of instance';
+  }
+  var name = args[0];
+  validateName(name);
+
+  vm.find(name, function(err, deets) {
+    checkErr(err);
+
+    if (deets && deets.ipAddress) {
+      console.log("pushing to git repo", deets.ipAddress);
+      git.push(deets.ipAddress, function(line) {
+        console.log(line);
+      }, function(status) {
+        if (!status) {
+          hooks.runLocalHook('poststart', deets);
+        }
+        else {
+          checkErr("Could not push git instance");
+        }
+
+      });
+    }
+    else {
+      console.log(name, "is not an awsbox instance");
+    }
+  });
+
+};
+
 var error = (process.argv.length <= 2);
 
 if (!error) {
