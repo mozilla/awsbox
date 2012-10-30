@@ -1,3 +1,6 @@
+0.3.2 -
+	* security updates
+
 0.3.1 -
 	* revert gzip support in proxy, see #37
 
