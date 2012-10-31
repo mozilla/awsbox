@@ -37,10 +37,10 @@ example:
       }
     }
 
-### `.hooks` (*optional*)
+### `.remote_hooks` (*optional*)
 
-The hooks key allows you to specify scripts that will run on the server at
-various points during deployment.
+The remote_hooks key allows you to specify scripts that will run on
+the server at various points during deployment.
 
 example:
 
@@ -68,6 +68,19 @@ started.
 #### `postcreate`
 
 Run as the `ec2-user` immediately after the VM is created
+
+### `.local_hooks` (*optional*)
+
+The local_hooks key allows you to specify scripts that will run on
+the client at various points during deployment.
+
+#### `poststart`
+ 
+Run locally as the current user after every git push.
+
+#### `postcreate`
+
+Run locally as the current user after the VM is created.
 
 ### `.packages` (*optional*)
 
