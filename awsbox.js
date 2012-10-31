@@ -3,8 +3,8 @@
 process.title = 'awsbox';
 
 const
-aws = require('./lib/aws.js');
-path = require('path');
+aws = require('./lib/aws.js'),
+path = require('path'),
 vm = require('./lib/vm.js'),
 key = require('./lib/key.js'),
 ssh = require('./lib/ssh.js'),
@@ -12,6 +12,8 @@ dns = require('./lib/dns.js'),
 git = require('./lib/git.js'),
 optimist = require('optimist'),
 urlparse = require('urlparse'),
+hooks = require('./lib/hooks'),
+config = require('./lib/config'),
 fs = require('fs'),
 relativeDate = require('relative-date');
 
@@ -39,6 +41,18 @@ function printInstructions(name, host, url, deets) {
 function validateName(name) {
   if (!name.length) {
     throw "invalid name!  must be non-null)";
+  }
+}
+
+function copySSLCertIfAvailable(opts, deets, cb) {
+  if (opts.p && opts.s) {
+    console.log("   ... copying up SSL cert");
+    ssh.copySSL(deets.ipAddress, opts.p, opts.s, function(err) {
+      checkErr(err);
+      cb && cb(null, null);
+    });
+  } else {
+    cb && cb(null, null);
   }
 }
 
@@ -179,11 +193,7 @@ verbs['create'] = function(args) {
 
   console.log("reading .awsbox.json");
 
-  try {
-    var awsboxJson = JSON.parse(fs.readFileSync("./.awsbox.json"));
-  } catch(e) {
-    checkErr("Can't read awsbox.json: " + e);
-  }
+  var awsboxJson = config.get();
 
   console.log("attempting to set up VM \"" + name + "\"");
 
@@ -257,22 +267,15 @@ verbs['create'] = function(args) {
                       }
                       ssh.installPackages(deets.ipAddress, awsboxJson.packages, function(err, r) {
                         checkErr(err);
-                        var postcreate = (awsboxJson.hooks && awsboxJson.hooks.postcreate) || null;
-                        if (postcreate) {
-                          console.log("   ... running post_create hook");
-                        }
-                        ssh.runScript(deets.ipAddress, postcreate,  function(err, r) {
+                        hooks.runRemoteHook('postcreate', deets, function(err, r) {
                           checkErr(err);
 
-                          if (opts.p && opts.s) {
-                            console.log("   ... copying up SSL cert");
-                            ssh.copySSL(deets.ipAddress, opts.p, opts.s, function(err) {
-                              checkErr(err);
+                          copySSLCertIfAvailable(opts, deets, function(err, status) {
+                            checkErr(err);
+                            hooks.runLocalHook('postcreate', deets, function(err) {
                               printInstructions(name, dnsHost, opts.u, deets);
                             });
-                          } else {
-                            printInstructions(name, dnsHost, opts.u, deets);
-                          }
+                          });
                         });
                       });
                     });
@@ -359,6 +362,37 @@ verbs['list'] = function(args) {
       console.log("")
     });
   });
+};
+
+verbs['update'] = function(args) {
+  if (!args || args.length != 1) {
+    throw 'missing required argument: name of instance';
+  }
+  var name = args[0];
+  validateName(name);
+
+  vm.find(name, function(err, deets) {
+    checkErr(err);
+
+    if (deets && deets.ipAddress) {
+      console.log("pushing to git repo", deets.ipAddress);
+      git.push(deets.ipAddress, function(line) {
+        console.log(line);
+      }, function(status) {
+        if (!status) {
+          hooks.runLocalHook('poststart', deets);
+        }
+        else {
+          checkErr("Could not push git instance");
+        }
+
+      });
+    }
+    else {
+      console.log(name, "is not an awsbox instance");
+    }
+  });
+
 };
 
 var error = (process.argv.length <= 2);
