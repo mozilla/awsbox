@@ -1,3 +1,8 @@
+0.3.3 -
+	* `update` verb added which git pushes and runs local_hooks
+	* hooks renamed to remote_hooks
+	* local_hooks added, scripts that should be run locally at different times
+
 0.3.2 -
 	* security updates
 
