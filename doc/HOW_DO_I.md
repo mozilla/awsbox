@@ -32,12 +32,44 @@ Or as an admin user with sudo privileges
 Add their key to `~ec2-user/.ssh/authorized_keys` to give access to
 administer the machine and the app.
 
+You can do this like so:
+
+```shell
+awsbox addkey <name> /path/to/keyfile.rsa.pub
+```
+
+Where `<name>` is either the AWS instance identifier or your name for it.
+
+The `addkey` command will add each key in the keyfile you give it,
+excluding any that are already in the `authorized_keys` file.
+
 Alternately, to only give app access, turn the symlink in
 `~app/.ssh/authorized_keys` to a real file, and add your buddy's key
 there:
 
     $ cp -L ~/.ssh/authorized_keys ~/.ssh/foo && mv .ssh/foo .ssh/authorized_keys
     $ # now add the key
+
+## How Do I Revoke Other People's Access to the VM?
+
+YOu can manually edit the `~ec2-user/.ssh/authorized_keys` file, or
+use the `removekey` command like so:
+
+```shell
+awsbox removekey <name> /path/to/keyfile.rsa.pub
+```
+
+Where `<name>` is either the AWS instance id or your name for it.
+
+## How Do I List the People Who Have Access to the VM?
+
+Look in the `~ec2-user/.ssh/authorized_keys` file, or simply run: 
+
+```shell
+awsbox listkeys <name>
+```
+
+Where `<name>` is your instance id or name.
 
 ## How Do I Enable SSL?
 

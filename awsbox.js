@@ -42,6 +42,26 @@ function validateName(name) {
   if (!name.length) {
     throw "invalid name!  must be non-null)";
   }
+  return name;
+}
+
+function validatePath(path) {
+  try {
+    var stats = fs.statSync(path);
+    return path;
+  } catch (err) {
+    throw "invalid path! " + err.message;
+  }
+}
+
+function getKeyTexts(path) {
+  var key = fs.readFileSync(validatePath(path)).toString();
+
+  key = key.trimRight();
+  if (key.match('\r\n')) {
+    return key.split('\r\n');
+  }
+  return key.split('\n');
 }
 
 function copySSLCertIfAvailable(opts, deets, cb) {
@@ -359,7 +379,7 @@ verbs['list'] = function(args) {
       console.log("  IP:\t\t" + v.ipAddress);
       console.log("  launched:\t" + relativeDate(v.launchTime));
 //      console.log("  ssh key:\t" + v.keyName);
-      console.log("")
+      console.log("");
     });
   });
 };
@@ -393,6 +413,99 @@ verbs['update'] = function(args) {
     }
   });
 
+verbs['describe'] = function(name) {
+  validateName(name);
+  vm.describe(name, function(err, deets) {
+    if (err) throw(err);
+    console.log(JSON.stringify(deets, null, 2));
+  });
+};
+
+verbs['listkeys'] = function(name) {
+  validateName(name);
+  vm.describe(name, function(err, deets) {
+    if (err) throw(err);
+
+    console.log("Fetching authorized keys for " + name + " (" + deets.ipAddress + ") ...\n");
+    ssh.listSSHPubKeys(deets.ipAddress, function(err, keys) {
+      if (err) throw(err);
+      console.log(keys);
+    });
+  });
+};
+
+verbs['addkey'] = function(args) {
+  if (args.length != 2) {
+    throw 'Args required for addkey: instance_name, path_to_key_file';
+  }
+
+  var name = [ validateName(args[0]) ];
+  var keys = getKeyTexts(args[1]);
+  var numKeys = keys.length;
+  var added = 0;
+
+  vm.describe(name, function(err, deets) {
+    if (err) throw(err);
+
+    // We don't want a whole bunch of asynchronous ssh processes adding
+    // and removing keys from the same file at the same time.  Ensure
+    // only one key is added at a time.
+    console.log("Adding the " + numKeys + " key" + (numKeys > 1 ? "s" : "") + " found in that file.");
+    addNextKey();
+
+    function maybeAddAnotherKey() {
+      added += 1;
+      if (added < numKeys) {
+        addNextKey();
+      } else {
+        console.log("done.");
+        return;
+      }
+    }
+
+    function addNextKey() {
+      var key = keys[added];
+      console.log("\nAdding key: " + key);
+      ssh.addSSHPubKey(deets.ipAddress, key, maybeAddAnotherKey);
+    }
+  });
+};
+
+verbs['removekey'] = function(args) {
+  if (args.length != 2) {
+    throw 'Args required for removekey: instance_name, path_to_key_file';
+  }
+
+  var name = [ validateName(args[0]) ];
+  var keys = getKeyTexts(args[1]);
+  var numKeys = keys.length;
+  var removed = 0;
+
+  vm.describe(name, function(err, deets) {
+    if (err) throw(err);
+
+    // We don't want a whole bunch of asynchronous ssh processes adding
+    // and removing keys from the same file at the same time.  Ensure
+    // only one key is removed at a time.
+    console.log("Removing the " + numKeys + " key" + (numKeys > 1 ? "s" : "") + " found in that file.");
+    removeNextKey();
+
+    function maybeRemoveAnotherKey() {
+      removed += 1;
+      if (removed < numKeys) {
+        removeNextKey();
+      } else {
+        console.log("done.");
+        return;
+      }
+    }
+
+    function removeNextKey() {
+      var key = keys[removed];
+      console.log("\nRemoving key: " + key);
+      ssh.removeSSHPubKey(deets.ipAddress, key, maybeRemoveAnotherKey);
+    }
+  });
 };
 
 var error = (process.argv.length <= 2);
