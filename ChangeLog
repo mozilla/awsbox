@@ -1,3 +1,7 @@
+0.3.4 -
+	* new verbs for key management via awsbox command line tool
+	* security updates
+
 0.3.3 -
 	* `update` verb added which git pushes and runs local_hooks
 	* hooks renamed to remote_hooks
