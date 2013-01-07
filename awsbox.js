@@ -378,7 +378,7 @@ verbs['list'] = function(args) {
       console.log("  type:\t\t" + v.instanceType);
       console.log("  IP:\t\t" + v.ipAddress);
       console.log("  launched:\t" + relativeDate(v.launchTime));
-//      console.log("  ssh key:\t" + v.keyName);
+      //      console.log("  ssh key:\t" + v.keyName);
       console.log("");
     });
   });
@@ -405,13 +405,13 @@ verbs['update'] = function(args) {
         else {
           checkErr("Could not push git instance");
         }
-
       });
     }
     else {
       console.log(name, "is not an awsbox instance");
     }
   });
+};
 
 verbs['describe'] = function(name) {
   validateName(name);
