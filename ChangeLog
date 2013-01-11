@@ -1,3 +1,13 @@
+0.3.5 -
+	* update to node.js 0.8.17
+	* install htop on VM
+	* performance tuning of VM:
+	  - increase open file limit
+	  - max out ephemeral port range (net.ipv4.ip_local_port_range)
+	  - reduce time_wait (net.ipv4.netfilter.ip_conntrack_tcp_timeout_time_wait & net.ipv4.tcp_fin_timeout)
+	  - reduce amount of time connections stay in netfilter's connection table (net.netfilter.nf_conntrack_tcp_timeout_established)
+	  - increase max number of connections that can be tracked (net.netfilter.nf_conntrack_max)
+
 0.3.4 -
 	* new verbs for key management via awsbox command line tool
 	* security updates
