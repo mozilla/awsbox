@@ -69,6 +69,6 @@ from the command line that is pre-configured to run your Node.JS service.
 Start by working through [the tutorial].  Then have a look at the [Hello World] sample app.
 And after that, check out [the documentation] in this repository.
 
-  [the tutorial]: https://github.com/lloyd/awsbox/blob/master/doc/TUTORIAL.md
+  [the tutorial]: https://github.com/mozilla/awsbox/blob/master/doc/TUTORIAL.md
   [Hello World]: https://github.com/lloyd/awsbox-helloworld
-  [the documentation]: https://github.com/lloyd/awsbox/tree/master/doc
+  [the documentation]: https://github.com/mozilla/awsbox/tree/master/doc
