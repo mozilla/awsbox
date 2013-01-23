@@ -15,7 +15,10 @@ urlparse = require('urlparse'),
 hooks = require('./lib/hooks'),
 config = require('./lib/config'),
 fs = require('fs'),
-relativeDate = require('relative-date');
+relativeDate = require('relative-date'),
+existsSync = fs.existsSync || path.existsSync; // existsSync moved path to fs in 0.7.x
+
+
 
 var verbs = {};
 
@@ -178,8 +181,8 @@ verbs['create'] = function(args) {
       // p and s are all or nothing
       if (argv.s ? !argv.p : argv.p) throw "-p and -s are both required";
       if (argv.s) {
-        if (!path.existsSync(argv.s)) throw "file '" + argv.s + "' doesn't exist";
-        if (!path.existsSync(argv.p)) throw "file '" + argv.p + "' doesn't exist";
+        if (!existsSync(argv.s)) throw "file '" + argv.s + "' doesn't exist";
+        if (!existsSync(argv.p)) throw "file '" + argv.p + "' doesn't exist";
       }
     })
     .describe('ssl', 'configure SSL behavior - enable, disable, force')
@@ -193,7 +196,7 @@ verbs['create'] = function(args) {
     .describe('x', 'path to a json file with Xtra configuration to copy up to ./config.json')
     .check(function(argv) {
       if (argv.x) {
-        if (!path.existsSync(argv.x)) throw "file '" + argv.x + "' doesn't exist";
+        if (!existsSync(argv.x)) throw "file '" + argv.x + "' doesn't exist";
         var x = JSON.parse(fs.readFileSync(argv.x));
         if (typeof x !== 'object' || x === null || Array.isArray(x)) throw "-x file must contain a JSON object";
       }
