@@ -1,3 +1,7 @@
+0.3.6 -
+	* latest security updates
+	* enable additional package repository by default
+
 0.3.5 -
 	* update to node.js 0.8.17
 	* install htop on VM
