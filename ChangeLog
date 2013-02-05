@@ -1,3 +1,9 @@
+0.4.1 -
+	* commands are case insensitve
+	* fix bug in searching for instances by short name
+	* better console documentation
+	* fix bug in error reporting to console
+
 0.3.6 -
 	* latest security updates
 	* enable additional package repository by default
