@@ -14,11 +14,10 @@ optimist = require('optimist'),
 urlparse = require('urlparse'),
 hooks = require('./lib/hooks'),
 config = require('./lib/config'),
+util = require('util'),
 fs = require('fs'),
 relativeDate = require('relative-date'),
 existsSync = fs.existsSync || path.existsSync; // existsSync moved path to fs in 0.7.x
-
-
 
 var verbs = {};
 
@@ -118,6 +117,7 @@ verbs['destroy'] = function(args) {
     }
   });
 }
+verbs['destroy'].doc = "teardown a vm, git remote, and DNS";
 
 verbs['test'] = function() {
   // let's see if we can contact aws and zerigo
@@ -133,12 +133,15 @@ verbs['test'] = function() {
     }
   });
 }
+verbs['test'].doc = "\tcheck to see if we have AWS credential properly configured";
 
-verbs['findByIP'] = function(args) {
+verbs['findbyip'] = function(args) {
+  if (!process.env['ZERIGO_DNS_KEY']) fail('ZERIGO_DNS_KEY env var missing');
   dns.findByIP(process.env['ZERIGO_DNS_KEY'], args[0], function(err, fqdns) {
     console.log(err, fqdns);
   });
 };
+verbs['findbyip'].doc = "find a hostname given an ip address (via zerigo, requires ZERIGO_DNS_KEY)"; 
 
 verbs['zones'] = function(args) {
   aws.zones(function(err, r) {
@@ -155,6 +158,7 @@ verbs['zones'] = function(args) {
     });
   });
 };
+verbs['zones'].doc = "list amazon availability zones";
 
 verbs['create'] = function(args) {
   var parser = optimist(args)
@@ -163,6 +167,8 @@ verbs['create'] = function(args) {
     .describe('dnscheck', 'whether to check for existing DNS records')
     .boolean('dnscheck')
     .default('dnscheck', true)
+    .describe('h', 'get help')
+    .alias('h', 'help')
     .describe('n', 'a short nickname for the VM.')
     .describe('keydir', 'a directory containing files with public keys to be added to the VM')
     .describe('u', 'publically visible URL for the instance')
@@ -328,8 +334,9 @@ verbs['create'] = function(args) {
     });
   });
 };
+verbs['create'].doc = "create an EC2 instance, -h for help";
 
-verbs['create_ami'] = function(args) {
+verbs['createami'] = function(args) {
   if (!args || args.length != 1) {
     throw 'missing required argument: name of instance';
   }
@@ -369,6 +376,7 @@ verbs['create_ami'] = function(args) {
     });
   });
 };
+verbs['createami'].doc = "create an ami from an EC2 instance - WILL DESTROY INSTANCE";
 
 verbs['list'] = function(args) {
   vm.list(function(err, r) {
@@ -377,15 +385,13 @@ verbs['list'] = function(args) {
       var v = r[k];
       var dispName = v.name;
       if (dispName.indexOf(v.instanceId) === -1) dispName += " {" + v.instanceId + "}";
-      console.log(dispName + ":");
-      console.log("  type:\t\t" + v.instanceType);
-      console.log("  IP:\t\t" + v.ipAddress);
-      console.log("  launched:\t" + relativeDate(v.launchTime));
-      //      console.log("  ssh key:\t" + v.keyName);
-      console.log("");
+      console.log(util.format('  %s:\t\n    %s, %s, launched %s\n',
+                              dispName, v.ipAddress, v.instanceType,
+                              relativeDate(v.launchTime)));
     });
   });
 };
+verbs['list'].doc = "\tlist all VMs on the aws account";
 
 verbs['update'] = function(args) {
   if (!args || args.length != 1) {
@@ -415,27 +421,30 @@ verbs['update'] = function(args) {
     }
   });
 };
+verbs['update'].doc = "git push to an instance";
 
 verbs['describe'] = function(name) {
   validateName(name);
   vm.describe(name, function(err, deets) {
-    if (err) throw(err);
+    if (err) fail(err);
     console.log(JSON.stringify(deets, null, 2));
   });
 };
+verbs['describe'].doc = "get information about an instance (by instance id, or name)"
 
 verbs['listkeys'] = function(name) {
   validateName(name);
   vm.describe(name, function(err, deets) {
-    if (err) throw(err);
+    if (err) fail(err);
 
     console.log("Fetching authorized keys for " + name + " (" + deets.ipAddress + ") ...\n");
     ssh.listSSHPubKeys(deets.ipAddress, function(err, keys) {
-      if (err) throw(err);
+      if (err) fail(err);
       console.log(keys);
     });
   });
 };
+verbs['listkeys'].doc = "list ssh keys on an instance: <instance name/id>"
 
 verbs['addkey'] = function(args) {
   if (args.length != 2) {
@@ -448,7 +457,7 @@ verbs['addkey'] = function(args) {
   var added = 0;
 
   vm.describe(name, function(err, deets) {
-    if (err) throw(err);
+    if (err) fail(err);
 
     // We don't want a whole bunch of asynchronous ssh processes adding
     // and removing keys from the same file at the same time.  Ensure
@@ -473,6 +482,7 @@ verbs['addkey'] = function(args) {
     }
   });
 };
+verbs['addkey'].doc = "add an ssh key to an instance: <instance> <file_or_dir>";
 
 verbs['removekey'] = function(args) {
   if (args.length != 2) {
@@ -485,7 +495,7 @@ verbs['removekey'] = function(args) {
   var removed = 0;
 
   vm.describe(name, function(err, deets) {
-    if (err) throw(err);
+    if (err) fail(err);
 
     // We don't want a whole bunch of asynchronous ssh processes adding
     // and removing keys from the same file at the same time.  Ensure
@@ -510,35 +520,37 @@ verbs['removekey'] = function(args) {
     }
   });
 };
+verbs['removekey'].doc = "remove a specific ssh key from an instance";
 
-var error = (process.argv.length <= 2);
+if (process.argv.length <= 2) fail();
 
-if (!error) {
-  var verb = process.argv[2];
-  if (!verbs[verb]) error = "no such command: " + verb;
+var verb = process.argv[2].toLowerCase();
+if (!verbs[verb]) fail(verb != '-h' ? "no such command: " + verb : null);
+
+// if there is a region supplied, then let's use it
+aws.setRegion(process.env['AWS_REGION'], function(err, region) {
+  try {
+    if (err) throw err;
+    if (region) console.log("(Using region", region.region + ")");
+    verbs[verb](process.argv.slice(3));
+  } catch(e) {
+    fail("error running '" + verb + "' command: " + e);
+  }
+});
+
+function fail(error) {
+  if (error && typeof error.message === 'function') error = error.message();
+  if (error && typeof error.message !== 'string') error = error.toString();
+
+  if (error) process.stderr.write('fatal error: ' + error + "\n");
   else {
-    // if there is a region supplied, then let's use it
-    aws.setRegion(process.env['AWS_REGION'], function(err, region) {
-      if (err) {
-        error = err;
-      } else {
-        if (region) console.log("(Using region", region.region + ")");
-        try {
-          verbs[verb](process.argv.slice(3));
-        } catch(e) {
-          error = "error running '" + verb + "' command: " + e;
-        }
-      }
+    process.stderr.write('A tool to deploy NodeJS systems on Amazon\'s EC2\n');
+    process.stderr.write('Usage: ' + path.basename(__filename) +
+                         ' <' + Object.keys(verbs).join('|') + "> [args]\n\n");
+    Object.keys(verbs).sort().forEach(function(verb) {
+      process.stderr.write(util.format("  %s:\t%s\n", verb,
+                                       verbs[verb].doc || "no docs"));
     });
   }
-}
-
-
-if (error) {
-  if (typeof error === 'string') process.stderr.write('fatal error: ' + error + "\n\n");
-
-  process.stderr.write('A tool to deploy NodeJS systems on Amazon\'s EC2\n');
-  process.stderr.write('Usage: ' + path.basename(__filename) +
-                       ' <' + Object.keys(verbs).join('|') + "> [args]\n");
   process.exit(1);
 }
