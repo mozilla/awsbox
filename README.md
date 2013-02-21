@@ -56,7 +56,7 @@ from the command line that is pre-configured to run your Node.JS service.
     a single account.
   * **HTTP forwarding with custom 503 page** - [http-proxy] is pre-configured to forward
     requests to your nodejs process bound to a local port.
-  * **SSL support** - By default you're process runs with a self-signed cert.  Enabling
+  * **SSL support** - By default your process runs with a self-signed cert.  Enabling
     SSL support is as easy as copying up a private key and certificate in [PEM] format.
   * **WebSocket support** - AWSBOX fully supports WebSockets, via [socket.io] or otherwise.
 
