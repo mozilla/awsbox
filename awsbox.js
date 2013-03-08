@@ -181,6 +181,7 @@ verbs['create'] = function(args) {
     })
     .describe('t', 'Instance type, dictates VM speed and cost.  i.e. t1.micro or m1.large (see http://aws.amazon.com/ec2/instance-types/)')
     .default('t', 't1.micro')
+    .describe('g', 'security group name, finds or creates a security group with this name')
     .describe('p', 'public SSL key (installed automatically when provided)')
     .describe('s', 'secret SSL key (installed automatically when provided)')
     .check(function(argv) {
@@ -245,7 +246,8 @@ verbs['create'] = function(args) {
     }
 
     vm.startImage({
-      type: opts.t
+      type: opts.t,
+      groupName: opts.g
     }, function(err, r) {
       checkErr(err);
       console.log("   ... VM launched, waiting for startup (should take about 20s)");
