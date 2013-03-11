@@ -1,3 +1,6 @@
+0.4.2 (in progress) -
+	* specify a different security group for an instance with -g
+
 0.4.1 -
 	* commands are case insensitve
 	* fix bug in searching for instances by short name
