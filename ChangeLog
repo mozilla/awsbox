@@ -1,5 +1,6 @@
-0.4.2 (in progress) -
+0.4.2 -
 	* specify a different security group for an instance with -g
+	* latest security updates
 
 0.4.1 -
 	* commands are case insensitve
