@@ -1,3 +1,6 @@
+0.4.4 -
+	* fix error race condition whereby creation can fail when --ssl flags are present - sshd should start last (after rc.local so proxy is already running): followup to #51
+
 0.4.3 -
 	* proxy logs now in /home/proxy/var/log: #47
 	* restart proxy at configuration time so (i.e.) --ssl=disable takes immediate effect: #51
