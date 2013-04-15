@@ -1,3 +1,13 @@
+0.4.3 -
+	* proxy logs now in /home/proxy/var/log: #47
+	* restart proxy at configuration time so (i.e.) --ssl=disable takes immediate effect: #51
+	* remove lloyd's public key from the ec2-user directory (cosmetic): #53
+	* start app after reboot (from rc.local): #43
+	* colorized console output: #55
+	* better failure when we cannot read awsbox.json: #56
+	* better cleanup of base image in 'createami' command
+	* latest security updates
+
 0.4.2 -
 	* specify a different security group for an instance with -g
 	* latest security updates
