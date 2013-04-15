@@ -370,7 +370,7 @@ verbs['createami'] = function(args) {
       checkErr(err);
       vm.createAMI(name, function(err, imageId) {
         checkErr(err);
-        console.log("Created image:".info, imageId, "- waiting for creation and making it public (can take a while)").warn;
+        console.log("Created image:".info, imageId, "- waiting for creation and making it public (can take a while)".warn);
         vm.makeAMIPublic(imageId, function(err) {
           console.log("  ... still waiting:".warn, err);
         }, function(err, imageId) {
