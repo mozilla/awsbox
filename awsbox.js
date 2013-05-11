@@ -547,6 +547,9 @@ aws.setRegion(process.env['AWS_REGION'], function(err, region) {
   try {
     if (err) throw err;
     if (region) console.log("(Using region", region.region + ")");
+    if (!process.env['AWS_ID'] || !process.env['AWS_KEY']) {
+      fail('Missing aws credentials\nPlease configure the AWS_ID and AWS_KEY environment variables.');
+    }
     verbs[verb](process.argv.slice(3));
   } catch(e) {
     fail("error running '".error + verb + "' command: ".error + e);
