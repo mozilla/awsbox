@@ -154,7 +154,7 @@ verbs['findbyip'] = function(args) {
     console.log(err, fqdns);
   });
 };
-verbs['findbyip'].doc = "find a hostname given an ip address (via zerigo, requires ZERIGO_DNS_KEY)"; 
+verbs['findbyip'].doc = "find a hostname given an ip address (via zerigo, requires ZERIGO_DNS_KEY)";
 
 verbs['zones'] = function(args) {
   aws.zones(function(err, r) {
@@ -259,6 +259,7 @@ verbs['create'] = function(args) {
     }
 
     vm.startImage({
+      ami: awsboxJson.ami,
       type: opts.t,
       groupName: opts.g
     }, function(err, r) {

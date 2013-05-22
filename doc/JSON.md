@@ -9,7 +9,7 @@ This file documents the supported keys.
 
 ### `.processes` (**required**)
 
-An array of processes that should be started upon git push.  The first process in 
+An array of processes that should be started upon git push.  The first process in
 the list will be public (external requests routed to it), others will be
 "private".  Only the first entry in the list will have a `PORT` env var defined
 at the time of execution and it must bind this port on localhost.
@@ -61,7 +61,7 @@ Available hooks include:
 Run as the `app` user after every git push, after npm install of modules.
 
 #### `poststart`
- 
+
 Run as the `app` user after every git push, after your server processes are
 started.
 
@@ -75,7 +75,7 @@ The local_hooks key allows you to specify scripts that will run on
 the client at various points during deployment.
 
 #### `poststart`
- 
+
 Run locally as the current user after every git push.
 
 #### `postcreate`
@@ -93,4 +93,18 @@ example:
       "packages": [
         "mysql-server"
       ]
+    }
+
+### `.ami` (*optional*)
+
+Use a custom AWS AMI base image. This defaults to "ami-8af096e3", a basic
+Linux AMI with node 0.8.17 and all the magic that makes awsbox easy. It is
+recommended to base new AMIs from the default and use `awsbox createami` for
+customization.
+
+example:
+
+    {
+      "ami": "ami-6f690106",
+      "processes": [ "myscript.js" ]
     }
