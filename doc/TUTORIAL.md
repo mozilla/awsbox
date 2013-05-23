@@ -19,6 +19,8 @@ environment variables.
       "awsbox": "*"
     }
 
+    You need to add this manually to `package.json` if you skipped the `--save-dev` argument in in step 0 above.
+    
 **4.** set up your server to bind localhost and defer to the environment for PORT
 
     app.listen(process.env['PORT'] || 3000, '127.0.0.1');
