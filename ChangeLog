@@ -1,3 +1,10 @@
+0.4.5 -
+	* allow one to specify a different AMI in their .awsbox.json (thanks @dannycoates): #65
+	* improve documentation, one can use the --save-dev flag (thanks @lvnilesh): #66
+	* improved handling of AWS_XX env vars and better errors (thanks @wolfeidau): #58
+        * latest security updates
+
+
 0.4.4 -
 	* fix error race condition whereby creation can fail when --ssl flags are present - sshd should start last (after rc.local so proxy is already running): followup to #51
 
