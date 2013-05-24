@@ -20,6 +20,11 @@ fs = require('fs'),
 relativeDate = require('relative-date'),
 existsSync = fs.existsSync || path.existsSync; // existsSync moved path to fs in 0.7.x
 
+// allow multiple different env vars
+[ 'AWS_KEY', 'AWS_SECRET_KEY', 'AWS_ACCESS_KEY' ].forEach(function(x) {
+  process.env['AWS_SECRET'] = process.env['AWS_SECRET'] || process.env[x];
+});
+
 colors.setTheme({
   input: 'grey',
   verbose: 'cyan',
@@ -543,14 +548,16 @@ if (process.argv.length <= 2) fail();
 var verb = process.argv[2].toLowerCase();
 if (!verbs[verb]) fail(verb != '-h' ? "no such command: " + verb : null);
 
+// check for required environment variables
+if (!process.env['AWS_ID'] || !process.env['AWS_SECRET']) {
+  fail('Missing aws credentials\nPlease configure the AWS_ID and AWS_SECRET environment variables.');
+}
+
 // if there is a region supplied, then let's use it
 aws.setRegion(process.env['AWS_REGION'], function(err, region) {
   try {
     if (err) throw err;
     if (region) console.log("(Using region", region.region + ")");
-    if (!process.env['AWS_ID'] || !process.env['AWS_KEY']) {
-      fail('Missing aws credentials\nPlease configure the AWS_ID and AWS_KEY environment variables.');
-    }
     verbs[verb](process.argv.slice(3));
   } catch(e) {
     fail("error running '".error + verb + "' command: ".error + e);
