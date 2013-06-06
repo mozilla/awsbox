@@ -165,7 +165,7 @@ verbs['zones'] = function(args) {
   aws.zones(function(err, r) {
     if (err) {
       console.log("ERROR:", err);
-      proxess.exit(1);
+      process.exit(1);
     }
     Object.keys(r).forEach(function(region) {
       console.log(region, "(" + r[region].endpoint + "):");
