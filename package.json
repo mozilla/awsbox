@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "awssum-amazon-ec2": "1.x",
+    "awssum-amazon-route53": "1.x",
     "JSONSelect": "0.4.0",
     "temp": "0.4.0",
     "xml2js": "0.1.13",

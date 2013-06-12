@@ -555,16 +555,16 @@ if (!process.env['AWS_ID'] || !process.env['AWS_SECRET']) {
   fail('Missing aws credentials\nPlease configure the AWS_ID and AWS_SECRET environment variables.');
 }
 
-// if there is a region supplied, then let's use it
-aws.setRegion(process.env['AWS_REGION'], function(err, region) {
-  try {
-    if (err) throw err;
-    if (region) console.log("(Using region", region.region + ")");
-    verbs[verb](process.argv.slice(3));
-  } catch(e) {
-    fail("error running '".error + verb + "' command: ".error + e);
-  }
-});
+// set the region (or use the default if none supplied)
+var region = aws.createClients(process.env['AWS_REGION']);
+console.log("(Using region", region + ")");
+
+// now call the command
+try {
+  verbs[verb](process.argv.slice(3));
+} catch(e) {
+  fail("error running '".error + verb + "' command: ".error + e);
+}
 
 function fail(error) {
   if (error && typeof error.message === 'function') error = error.message();
