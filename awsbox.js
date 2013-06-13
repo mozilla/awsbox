@@ -153,6 +153,47 @@ verbs['test'] = function() {
 }
 verbs['test'].doc = "\tcheck to see if we have AWS credential properly configured";
 
+verbs['listdomains'] = function(args) {
+  dns.listDomains(function(err, zones) {
+    zones.forEach(function(zone) {
+      console.log(zone.Name);
+    });
+  });
+};
+verbs['listdomains'].doc = "lists all domains in Route53";
+
+verbs['listhosts'] = function(args) {
+  if (!args || args.length !== 1) {
+    throw 'missing required argument: name of domain'.error;
+  }
+
+  // if this domain doesn't have a '.' on the end, add one
+  var domainName = args[0];
+  if ( !domainName.match(/\.$/) ) {
+      domainName += '.';
+  }
+
+  process.stdout.write("Listing hosts for " + domainName + ": ");
+
+  dns.listHosts(domainName, function(err, hosts) {
+    console.log(err ? ("failed: ".error, err) : "done");
+
+    hosts.forEach(function(host) {
+      var rr = host.ResourceRecords.ResourceRecord;
+      if ( Array.isArray(rr) ) {
+        rr.forEach(function(record) {
+          console.log(host.Name + ' ' + host.TTL + ' ' + host.Type + ' ' + record.Value);
+        });
+      }
+      else {
+        console.log(host.Name + ' ' + host.TTL + ' ' + host.Type + ' ' + rr.Value);
+      }
+    });
+
+  });
+};
+verbs['listhosts'].doc = "lists all hosts in a domain: <domain>";
+
 verbs['findbyip'] = function(args) {
   if (!process.env['ZERIGO_DNS_KEY']) fail('ZERIGO_DNS_KEY env var missing');
   dns.findByIP(process.env['ZERIGO_DNS_KEY'], args[0], function(err, fqdns) {
