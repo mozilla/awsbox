@@ -195,12 +195,15 @@ verbs['listhosts'] = function(args) {
 verbs['listhosts'].doc = "lists all hosts in a domain: <domain>";
 
 verbs['findbyip'] = function(args) {
-  if (!process.env['ZERIGO_DNS_KEY']) fail('ZERIGO_DNS_KEY env var missing');
-  dns.findByIP(process.env['ZERIGO_DNS_KEY'], args[0], function(err, fqdns) {
-    console.log(err, fqdns);
+  dns.findByIP(args[0], function(err, found) {
+    if (err) {
+      console.log("ERROR:", err);
+      process.exit(1);
+    }
+    console.log(found.join("\n"));
   });
 };
-verbs['findbyip'].doc = "find a hostname given an ip address (via zerigo, requires ZERIGO_DNS_KEY)";
+verbs['findbyip'].doc = "find a hostname given an ip address";
 
 verbs['zones'] = function(args) {
   aws.zones(function(err, r) {
