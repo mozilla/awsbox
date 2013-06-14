@@ -112,25 +112,22 @@ verbs['destroy'] = function(args) {
       git.removeRemote(name, deets.ipAddress, function(err) {
         console.log(err ? "failed: ".error + err : "done");
 
-        if (process.env['ZERIGO_DNS_KEY']) {
-          process.stdout.write("trying to remove DNS: ".warn);
-          var dnsKey = process.env['ZERIGO_DNS_KEY'];
-          dns.findByIP(dnsKey, deets.ipAddress, function(err, fqdns) {
-            checkErr(err);
-            if (!fqdns.length) return console.log("no dns entries found".info);
-            console.log(fqdns.join(', '));
-            function removeNext() {
-              if (!fqdns.length) return;
-              var fqdn = fqdns.shift();
-              process.stdout.write("deleting ".warn + fqdn + ": ");
-              dns.deleteRecord(dnsKey, fqdn, function(err) {
-                console.log(err ? "failed: ".error + err : "done");
-                removeNext();
-              });
-            }
-            removeNext();
-          });
-        }
+        process.stdout.write("trying to remove DNS: ".warn);
+        dns.findByIP(deets.ipAddress, function(err, fqdns) {
+          checkErr(err);
+          if (!fqdns.length) return console.log("no dns entries found".info);
+          console.log(fqdns.join(', '));
+          function removeNext() {
+            if (!fqdns.length) return;
+            var fqdn = fqdns.shift();
+            process.stdout.write("deleting ".warn + fqdn + ": ");
+            dns.deleteRecord(fqdn, function(err) {
+              console.log(err ? "failed: ".error + err : "done");
+              removeNext();
+            });
+          }
+          removeNext();
+        });
       });
     }
   });
@@ -138,17 +135,15 @@ verbs['destroy'] = function(args) {
 verbs['destroy'].doc = "teardown a vm, git remote, and DNS";
 
 verbs['test'] = function() {
-  // let's see if we can contact aws and zerigo
+  // let's see if we can contact aws
   process.stdout.write("Checking AWS access: ");
   vm.list(function(err) {
     console.log(err ? "NOT ok: " + err : "good");
 
-    if (process.env['ZERIGO_DNS_KEY']) {
-      process.stdout.write("Checking DNS access: ");
-      dns.inUse(process.env['ZERIGO_DNS_KEY'], 'example.com', function(err, res) {
-        console.log(err ? "NOT ok: " + err : "good");
-      });
-    }
+    process.stdout.write("Checking DNS access: ");
+    dns.inUse('example.com', function(err, res) {
+      console.log(err ? "NOT ok: " + err : "good");
+    });
   });
 }
 verbs['test'].doc = "\tcheck to see if we have AWS credential properly configured";
@@ -222,10 +217,35 @@ verbs['zones'] = function(args) {
 };
 verbs['zones'].doc = "list amazon availability zones";
 
+verbs['updaterecord'] = function(args) {
+  var hostname = args[0];
+  var ipAddress = args[1];
+  dns.updateRecord(hostname, ipAddress, function(err, result) {
+    if (err) {
+      console.log("ERROR:", err);
+      process.exit(1);
+    }
+    console.log('Changeset: ', result.Body.ChangeResourceRecordSetsResponse.ChangeInfo);
+    console.log('Updated ' + hostname + ' to ' + ipAddress);
+  });
+};
+
+verbs['deleterecord'] = function(args) {
+  var hostname = args[0];
+  dns.deleteRecord(hostname, function(err, result) {
+    if (err) {
+      console.log("ERROR:", err);
+      process.exit(1);
+    }
+    console.log('Changeset: ', result.Body.ChangeResourceRecordSetsResponse.ChangeInfo);
+    console.log('Deleted ' + hostname);
+  });
+};
+
 verbs['create'] = function(args) {
   var parser = optimist(args)
     .usage('awsbox create: Create a VM')
-    .describe('d', 'setup DNS via zerigo (requires ZERIGO_DNS_KEY in env)')
+    .describe('d', 'setup DNS via Route53')
     .describe('dnscheck', 'whether to check for existing DNS records')
     .boolean('dnscheck')
     .default('dnscheck', true)
@@ -290,19 +310,16 @@ verbs['create'] = function(args) {
 
   console.log("attempting to set up VM \"" + name + "\"");
 
-  var dnsKey;
   var dnsHost;
   if (opts.d) {
     if (!opts.u) checkErr('-d is meaningless without -u (to set DNS I need a hostname)');
-    if (!process.env['ZERIGO_DNS_KEY']) checkErr('-d requires ZERIGO_DNS_KEY env var');
-    dnsKey = process.env['ZERIGO_DNS_KEY'];
     dnsHost = urlparse(opts.u).host;
     if (opts.dnscheck) {
       console.log("   ... Checking for DNS availability of " + dnsHost);
     }
   }
 
-  dns.inUse(dnsKey, dnsHost, function(err, res) {
+  dns.inUse(dnsHost, function(err, res) {
     checkErr(err);
     if (res && opts.dnscheck) {
       checkErr('that domain is in use, pointing at ' + res.data);
@@ -322,7 +339,7 @@ verbs['create'] = function(args) {
 
         if (dnsHost) console.log("   ... Adding DNS Record for " + dnsHost);
 
-        dns.updateRecord(dnsKey, dnsHost, deets.ipAddress, function(err) {
+        dns.updateRecord(dnsHost, deets.ipAddress, function(err) {
           checkErr(err ? 'updating DNS: ' + err : err);
 
           console.log("   ... Instance ready, setting human readable name in aws");
