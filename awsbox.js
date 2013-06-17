@@ -20,8 +20,11 @@ fs = require('fs'),
 relativeDate = require('relative-date'),
 existsSync = fs.existsSync || path.existsSync; // existsSync moved path to fs in 0.7.x
 
-// allow multiple different env vars
-[ 'AWS_KEY', 'AWS_SECRET_KEY', 'AWS_ACCESS_KEY' ].forEach(function(x) {
+// allow multiple different env vars (for the canonical AWS_ID and AWS_SECRET)
+[ 'AWS_KEY', 'AWS_ID', 'AWS_ACCESS_KEY' ].forEach(function(x) {
+  process.env['AWS_ID'] = process.env['AWS_ID'] || process.env[x];
+});
+[ 'AWS_SECRET', 'AWS_SECRET_KEY' ].forEach(function(x) {
   process.env['AWS_SECRET'] = process.env['AWS_SECRET'] || process.env[x];
 });
 
