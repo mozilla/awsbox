@@ -144,7 +144,7 @@ verbs['test'] = function() {
     console.log(err ? "NOT ok: " + err : "good");
 
     process.stdout.write("Checking DNS access: ");
-    dns.inUse('example.com', function(err, res) {
+    dns.inUse('tyn.io', function(err, res) {
       console.log(err ? "NOT ok: " + err : "good");
     });
   });
@@ -153,8 +153,11 @@ verbs['test'].doc = "\tcheck to see if we have AWS credential properly configure
 
 verbs['listdomains'] = function(args) {
   dns.listDomains(function(err, zones) {
+    if (err) {
+      return console.log('Err: ', err);
+    }
     zones.forEach(function(zone) {
-      console.log(zone.Name);
+      console.log(zone.name);
     });
   });
 };
