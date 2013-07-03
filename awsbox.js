@@ -168,29 +168,20 @@ verbs['listhosts'] = function(args) {
     throw 'missing required argument: name of domain'.error;
   }
 
-  // if this domain doesn't have a '.' on the end, add one
   var domainName = args[0];
-  if ( !domainName.match(/\.$/) ) {
-      domainName += '.';
-  }
-
   process.stdout.write("Listing hosts for " + domainName + ": ");
-
   dns.listHosts(domainName, function(err, hosts) {
-    console.log(err ? ("failed: ".error, err) : "done");
+    if (err) {
+      return console.log('Err: ', err);
+    }
+
+    console.log('done');
 
     hosts.forEach(function(host) {
-      var rr = host.ResourceRecords.ResourceRecord;
-      if ( Array.isArray(rr) ) {
-        rr.forEach(function(record) {
-          console.log(host.Name + ' ' + host.TTL + ' ' + host.Type + ' ' + record.Value);
-        });
-      }
-      else {
-        console.log(host.Name + ' ' + host.TTL + ' ' + host.Type + ' ' + rr.Value);
-      }
+      host.values.forEach(function(val) {
+        console.log(host.name + ' ' + host.ttl + ' ' + host.type + ' ' + val);
+      });
     });
-
   });
 };
 verbs['listhosts'].doc = "lists all hosts in a domain: <domain>";
