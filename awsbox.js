@@ -217,27 +217,59 @@ verbs['zones'].doc = "list amazon availability zones";
 verbs['updaterecord'] = function(args) {
   var hostname = args[0];
   var ipAddress = args[1];
-  dns.updateRecord(hostname, ipAddress, function(err, result) {
+  dns.updateRecord(hostname, ipAddress, function(err, changeInfo, ee) {
     if (err) {
       console.log("ERROR:", err);
       process.exit(1);
     }
-    console.log('Changeset: ', result.Body.ChangeResourceRecordSetsResponse.ChangeInfo);
-    console.log('Updated ' + hostname + ' to ' + ipAddress);
+
+    console.log('Record updated, changeId=%s', changeInfo.changeId);
+
+    // now let's wait for the change to be in sync
+    console.log('Waiting for change to be INSYNC ...');
+    ee
+      .on('attempt', function() {
+        console.log('- still waiting ...');
+      })
+      .on('insync', function() {
+        console.log('Change now INSYNC');
+        console.log('Updated ' + hostname);
+      })
+      .on('err', function(err) {
+        console.log('Err: ', err);
+      })
+   ;
   });
 };
+verbs['updaterecord'].doc = "updated a resource record's A value. e.g. updaterecord sub.example.com 1.2.3.4";
 
 verbs['deleterecord'] = function(args) {
   var hostname = args[0];
-  dns.deleteRecord(hostname, function(err, result) {
+  dns.deleteRecord(hostname, function(err, changeInfo, ee) {
     if (err) {
       console.log("ERROR:", err);
       process.exit(1);
     }
-    console.log('Changeset: ', result.Body.ChangeResourceRecordSetsResponse.ChangeInfo);
-    console.log('Deleted ' + hostname);
+
+    console.log('Record deleted, changeId=%s', changeInfo.changeId);
+
+    // now let's wait for the change to be in sync
+    console.log('Waiting for change to be INSYNC ...');
+    ee
+      .on('attempt', function() {
+        console.log('- still waiting ...');
+      })
+      .on('insync', function() {
+        console.log('Change now INSYNC');
+        console.log('Deleted ' + hostname);
+      })
+      .on('err', function(err) {
+        console.log('Err: ', err);
+      })
+   ;
   });
 };
+verbs['deleterecord'].doc = "delete a resource record. e.g. sub.example.com (this does not delete zones)";
 
 verbs['create'] = function(args) {
   var parser = optimist(args)
