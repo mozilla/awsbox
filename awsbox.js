@@ -217,7 +217,7 @@ verbs['zones'] = function(args) {
     });
   });
 };
-verbs['zones'].doc = "list amazon availability zones";
+verbs['zones'].doc = "list Amazon regions and availability zones";
 
 verbs['updaterecord'] = function(args) {
   var hostname = args[0];
