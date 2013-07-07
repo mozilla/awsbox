@@ -44,7 +44,7 @@ var verbs = {};
 
 function checkErr(err) {
   if (err) {
-    process.stderr.write('ERRORE FATALE: '.error + err + "\n");
+    process.stderr.write('ERRORE FATALE: '.error, err, "\n");
     process.exit(1);
   }
 }
@@ -125,7 +125,8 @@ verbs['destroy'] = function(args) {
             var fqdn = fqdns.shift();
             process.stdout.write("deleting ".warn + fqdn + ": ");
             dns.deleteRecord(fqdn, function(err) {
-              console.log(err ? "failed: ".error + err : "done");
+              checkErr(err);
+              console.log("done");
               removeNext();
             });
           }
@@ -144,8 +145,12 @@ verbs['test'] = function() {
     console.log(err ? "NOT ok: " + err : "good");
 
     process.stdout.write("Checking DNS access: ");
-    dns.inUse('tyn.io', function(err, res) {
-      console.log(err ? "NOT ok: " + err : "good");
+    dns.inUse('example.com', function(err, res) {
+        if (err) {
+          console.log('Err: ', err);
+          process.exit(1);
+        }
+        console.log('good');
     });
   });
 }
@@ -343,15 +348,20 @@ verbs['create'] = function(args) {
   if (opts.d) {
     if (!opts.u) checkErr('-d is meaningless without -u (to set DNS I need a hostname)');
     dnsHost = urlparse(opts.u).host;
+    console.log('You said -d, so we shall check dnsHost=' + dnsHost);
     if (opts.dnscheck) {
       console.log("   ... Checking for DNS availability of " + dnsHost);
     }
   }
 
   dns.inUse(dnsHost, function(err, res) {
-    checkErr(err);
+    if (err) {
+      console.log("ERROR:", err);
+      process.exit(1);
+    }
+
     if (res && opts.dnscheck) {
-      checkErr('that domain is in use, pointing at ' + res.data);
+      checkErr('that domain is in use, pointing at ' + JSON.stringify(res.values));
     }
 
     vm.startImage({
