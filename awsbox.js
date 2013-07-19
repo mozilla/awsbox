@@ -416,6 +416,21 @@ verbs['list'] = function(args) {
 };
 verbs['list'].doc = "\tlist all VMs on the aws account";
 
+verbs['list-awsboxes'] = function(args) {
+  vm.listawsboxes(function(err, r) {
+    checkErr(err);
+    Object.keys(r).forEach(function(k) {
+      var v = r[k];
+      var dispName = v.name;
+      if (dispName.indexOf(v.instanceId) === -1) dispName += " {" + v.instanceId + "}";
+      console.log(util.format('  %s:\t\n    %s, %s, launched %s\n',
+                              dispName, v.ipAddress, v.instanceType,
+                              relativeDate(v.launchTime)));
+    });
+  });
+};
+verbs['list-awsboxes'].doc = 'list all AWSBOX instances on the aws account'
+
 verbs['update'] = function(args) {
   if (!args || args.length != 1) {
     throw 'missing required argument: name of instance'.error;
