@@ -20,10 +20,12 @@ fs = require('fs'),
 relativeDate = require('relative-date'),
 existsSync = fs.existsSync || path.existsSync; // existsSync moved path to fs in 0.7.x
 
-// allow multiple different env vars
-[ 'AWS_KEY', 'AWS_SECRET_KEY', 'AWS_ACCESS_KEY' ].forEach(function(x) {
+// allow multiple different env vars, AWS_ACCESS_KEY, AWS_SECRET_KEY 
+// are used by the EC2 CLI
+[ 'AWS_KEY', 'AWS_SECRET_KEY' ].forEach(function(x) {
   process.env['AWS_SECRET'] = process.env['AWS_SECRET'] || process.env[x];
 });
+process.env['AWS_ID'] = process.env['AWS_ID'] || process.env['AWS_ACCESS_KEY'];
 
 colors.setTheme({
   input: 'grey',
