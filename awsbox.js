@@ -178,6 +178,59 @@ verbs['zones'] = function(args) {
 };
 verbs['zones'].doc = "list amazon availability zones";
 
+verbs['reap'] = function(args) {
+  var parser = optimist(args)
+    .usage('awsbox reap: reap VMs that have been running for too long')
+    .describe('dryrun', 'Perform a dry run')
+    .boolean('dryrun')
+    .default('dryrun', true)
+    .describe('ttl', 'time to live. Num. of hours an awsbox can live for')
+    .default('ttl', 7 * 24)
+    .describe('warn1', 'num. hours old for first warning')
+    .default('warn1', 5 * 24)
+    .describe('warn2', 'num. hours old for first warning')
+    .default('warn2', 6 * 24)
+    .check(function(argv) {
+      return (argv.warn1 < argv.ttl && argv.warn2 < argv.ttl) && (argv.warn2 > argv.warn1)
+    });
+
+  vm.listawsboxes(function(err, results) {
+    Object.keys(results).forEach(function(instanceName) {
+      var instance = results[instanceName];
+      var runningHours = Math.floor((Date.now() - (new Date(instance.launchTime)).getTime())/1000/3600);
+
+      if (typeof(instance.tags['AWSBOX_NOKILL']) != 'undefined') {
+        console.log("NO_KILL " + instance.instanceId);
+        return
+      }
+
+      var AWSBOX_REAP = (typeof(instance.tags['AWSBOX_REAP']) === 'undefined') ? 
+        0 : parseInt(instance.tags['AWSBOX_REAP'], 10);
+      var AWSBOX_OWNER = (typeof(instance.tags['AWSBOX_OWNER']) == 'undefined') ?
+        '' : instance.tags['AWSBOX_OWNER'];
+
+      // keep track of the state 
+      if (runningHours > parser.argv.warn1 && AWSBOX_REAP === 0 && AWSBOX_OWNER !== '')  {
+        console.log(instance.instanceId, "Sending warning 1 email to ", AWSBOX_OWNER)
+        // tag AWSBOX_REAP == 1
+      } else if (runningHours > parser.argv.warn2 && AWSBOX_REAP === 1 && AWSBOX_OWNER !== '') {
+        console.log(instance.instanceId, "Sending warning 2 email")
+        // sending warning #2
+        // tag AWSBOX_REAP == 2
+      } else if (runningHours > parser.argv.ttl && AWSBOX_REAP === 2 && AWSBOX_OWNER !== '') {
+        console.log(instance.instanceId, "Terminating")
+        // if AWSBOX_SPAREME exists
+        //    -- delete the tag
+        //    -- set AWSBOX_REAP back to 0
+        // else
+        //    terminate the instance
+      }
+    });
+  });
+
+    
+};
+
 verbs['create'] = function(args) {
   var parser = optimist(args)
     .usage('awsbox create: Create a VM')
@@ -423,13 +476,13 @@ verbs['list-awsboxes'] = function(args) {
       var v = r[k];
       var dispName = v.name;
       if (dispName.indexOf(v.instanceId) === -1) dispName += " {" + v.instanceId + "}";
-      console.log(util.format('  %s:\t\n    %s, %s, launched %s\n',
+      console.log(util.format('  %s:\t\n    %s, %s, launched %s (%s)\n',
                               dispName, v.ipAddress, v.instanceType,
-                              relativeDate(v.launchTime)));
+                              relativeDate(v.launchTime), v.launchTime));
     });
   });
 };
-verbs['list-awsboxes'].doc = 'list all AWSBOX instances on the aws account'
+verbs['list-awsboxes'].doc = 'list all AWSBOX instances on the aws account';
 
 verbs['update'] = function(args) {
   if (!args || args.length != 1) {
