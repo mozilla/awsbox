@@ -14,7 +14,7 @@ reaper = require('./lib/reaper.js'),
 mailer = require('nodemailer').createTransport('SMTP', { host: 'localhost' }),  // TODO improve
 optimist = require('optimist');
 
-var parser = optimist(args)
+var parser = optimist
   .usage('awsbox reap: reap VMs that have been running for too long')
   .describe('dryrun', 'Perform a dry run')
   .boolean('dryrun')
@@ -30,7 +30,8 @@ vm.listawsboxes(function(err, results) {
   Object.keys(results).forEach(function(instanceName) {
     var i = results[instanceName], 
         instanceId = i.instanceId, 
-        name = (typeof(i.tags['Name']) !== undefined ** i.tags['name'] !== '') ? i.tags['name'] : 'un-named';
+        name = (typeof(i.tags['Name']) !== undefined && i.tags['name'] !== '') ? 
+          i.tags['name'] : 'un-named'
     ;
 
     if (typeof(i.tags['AWSBOX_NOKILL']) != 'undefined') {
