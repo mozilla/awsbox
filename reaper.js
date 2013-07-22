@@ -12,6 +12,7 @@ path = require('path'),
 vm = require('./lib/vm.js'),
 reaper = require('./lib/reaper.js'),
 mailer = require('nodemailer').createTransport('SMTP', { host: 'localhost' }),  // TODO improve
+fs = require('fs'),
 optimist = require('optimist');
 
 var parser = optimist
@@ -25,6 +26,13 @@ var parser = optimist
   .default('warn2', 24)
   .describe('terminate', 'num. hours after 2nd warning to terminate the box')
   .default('terminate', 24);
+
+// load email templates
+
+var warning1  = fs.readFileSync(__dirname + '/reaper-templates/warning1.txt');
+console.log(warning1);
+process.exit();
+
 
 vm.listawsboxes(function(err, results) {
   Object.keys(results).forEach(function(instanceName) {
