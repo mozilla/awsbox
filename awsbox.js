@@ -11,6 +11,7 @@ const
 aws = require('./lib/aws.js'),
 path = require('path'),
 vm = require('./lib/vm.js'),
+reaper = require('./lib/reaper.js'),
 key = require('./lib/key.js'),
 ssh = require('./lib/ssh.js'),
 dns = require('./lib/dns.js'),
@@ -184,51 +185,72 @@ verbs['reap'] = function(args) {
     .describe('dryrun', 'Perform a dry run')
     .boolean('dryrun')
     .default('dryrun', true)
-    .describe('ttl', 'time to live. Num. of hours an awsbox can live for')
-    .default('ttl', 7 * 24)
     .describe('warn1', 'num. hours old for first warning')
     .default('warn1', 5 * 24)
-    .describe('warn2', 'num. hours old for first warning')
-    .default('warn2', 6 * 24)
-    .check(function(argv) {
-      return (argv.warn1 < argv.ttl && argv.warn2 < argv.ttl) && (argv.warn2 > argv.warn1)
-    });
+    .describe('warn2', 'num. hours after 1st warning to send final warning')
+    .default('warn2', 24)
+    .describe('terminate', 'num. hours after 2nd warning to terminate the box')
+    .default('terminate', 24);
 
   vm.listawsboxes(function(err, results) {
     Object.keys(results).forEach(function(instanceName) {
-      var instance = results[instanceName];
-      var runningHours = Math.floor((Date.now() - (new Date(instance.launchTime)).getTime())/1000/3600);
+      var i = results[instanceName], 
+          instanceId = i.instanceId;
 
-      if (typeof(instance.tags['AWSBOX_NOKILL']) != 'undefined') {
-        console.log("NO_KILL " + instance.instanceId);
+      if (typeof(i.tags['AWSBOX_NOKILL']) != 'undefined') {
+        console.log("NO_KILL " + instanceId);
         return
       }
 
-      var AWSBOX_REAP = (typeof(instance.tags['AWSBOX_REAP']) === 'undefined') ? 
-        0 : parseInt(instance.tags['AWSBOX_REAP'], 10);
-      var AWSBOX_OWNER = (typeof(instance.tags['AWSBOX_OWNER']) == 'undefined') ?
-        '' : instance.tags['AWSBOX_OWNER'];
-
-      // keep track of the state 
-      if (runningHours > parser.argv.warn1 && AWSBOX_REAP === 0 && AWSBOX_OWNER !== '')  {
-        console.log(instance.instanceId, "Sending warning 1 email to ", AWSBOX_OWNER)
-        // tag AWSBOX_REAP == 1
-      } else if (runningHours > parser.argv.warn2 && AWSBOX_REAP === 1 && AWSBOX_OWNER !== '') {
-        console.log(instance.instanceId, "Sending warning 2 email")
-        // sending warning #2
-        // tag AWSBOX_REAP == 2
-      } else if (runningHours > parser.argv.ttl && AWSBOX_REAP === 2 && AWSBOX_OWNER !== '') {
-        console.log(instance.instanceId, "Terminating")
-        // if AWSBOX_SPAREME exists
-        //    -- delete the tag
-        //    -- set AWSBOX_REAP back to 0
-        // else
-        //    terminate the instance
+      // for testing w/ only once instance
+      if (instanceId != "i-ca512eb3") {
+        return;
       }
+
+      var AWSBOX_OWNER = (typeof(i.tags['AWSBOX_OWNER']) == 'undefined') ?
+        '' : i.tags['AWSBOX_OWNER'];
+
+      var AWSBOX_REAP = reaper.getState(i);
+
+      if (AWSBOX_REAP.state === 0) { // never seen before...
+        console.log("Setting initial reaper state: ", instanceId);
+        reaper.setState(instanceId, 1, function(err) {
+            if (err) {
+              console.error('ERROR Setting AWSBOX_REAP initial state');
+              return;
+            }
+        });
+      } else if (AWSBOX_REAP.state === 1 && AWSBOX_REAP.deltaHours > parser.argv.warn1) {
+        console.log("sending warning 1");
+        reaper.setState(instanceId, 2, function(err) {
+            if (err) {
+              console.error('ERROR Setting first warning state');
+              return;
+            }
+        });
+      } else if (AWSBOX_REAP.state === 2 && AWSBOX_REAP.deltaHours > parser.argv.warn2) {
+        console.log("sending warning 2");
+        reaper.setState(instanceId, 3, function(err) {
+            if (err) {
+              console.error('ERROR Setting second warning state');
+              return;
+            }
+        });
+      } else if (AWSBOX_REAP.state === 3 && AWSBOX_REAP.deltaHours > parser.argv.terminate) {
+        if (typeof(i.tags['AWSBOX_SPAREME']) !== 'undefined') {
+          vm.deleteTags(instanceId, ['AWSBOX_SPAREME', 'AWSBOX_REAP'], function(err) {
+            if (err) {
+              console.error('ERROR Setting second warning state');
+              return;
+            }
+          });
+        } else {
+          console.log("Deleting instance: ", instanceId);
+        }
+      }
+
     });
   });
-
-    
 };
 
 verbs['create'] = function(args) {
