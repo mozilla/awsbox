@@ -17,8 +17,10 @@ optimist = require('optimist');
 
 var parser = optimist
   .usage('awsbox reap: reap VMs that have been running for too long')
-  .describe('dryrun', 'Perform a dry run')
+  .describe('dryrun', 'Perform a dry run. Sends emails, but DOES NOT terminate instances')
+  .default('dryrun', false)
   .boolean('dryrun');
+
 
 // schedule to for warnings to turning off the AWSBOX
 const
@@ -32,7 +34,6 @@ var tplWarning1  = fs.readFileSync(__dirname + '/reaper-templates/warning1.txt',
     tplWarning2  = fs.readFileSync(__dirname + '/reaper-templates/warning2.txt', 'utf8'),
     tplTerminated  = fs.readFileSync(__dirname + '/reaper-templates/terminated.txt', 'utf8');
 
-
 vm.listawsboxes(function(err, results) {
   Object.keys(results).forEach(function(instanceName) {
     var i = results[instanceName], 
@@ -44,11 +45,6 @@ vm.listawsboxes(function(err, results) {
     if (typeof(i.tags['AWSBOX_NOKILL']) != 'undefined') {
       console.log("NO_KILL " + instanceId);
       return
-    }
-
-    // for testing w/ only once instance
-    if (instanceId != "i-ca512eb3") {
-      return;
     }
 
     var AWSBOX_OWNER = (typeof(i.tags['AWSBOX_OWNER']) == 'undefined') ?
@@ -64,6 +60,10 @@ vm.listawsboxes(function(err, results) {
             return;
           }
       });
+
+    /******************************************
+     * SEND FIRST WARNING
+     ******************************************/
     } else if (AWSBOX_REAP.state === 1 && AWSBOX_REAP.deltaHours > WARN1_TIME) {
       if (AWSBOX_OWNER != '') {
         mailer.sendMail({
@@ -88,6 +88,9 @@ vm.listawsboxes(function(err, results) {
             return;
           }
       });
+    /******************************************
+     * SEND FINAL WARNING
+     ******************************************/
     } else if (AWSBOX_REAP.state === 2 && AWSBOX_REAP.deltaHours > WARN2_TIME) {
       if (AWSBOX_OWNER != '') {
         mailer.sendMail({
@@ -111,6 +114,9 @@ vm.listawsboxes(function(err, results) {
           }
       });
 
+    /******************************************
+     * TERMINATE THE BOX
+     ******************************************/
     } else if (AWSBOX_REAP.state === 3 && AWSBOX_REAP.deltaHours > TERMINATE_TIME) {
       if (typeof(i.tags['AWSBOX_SPAREME']) !== 'undefined') {
         vm.deleteTags(instanceId, ['AWSBOX_SPAREME', 'AWSBOX_REAP'], function(err) {
@@ -118,6 +124,7 @@ vm.listawsboxes(function(err, results) {
             console.error('ERROR Setting second warning state');
             return;
           }
+          console.log("Spared:", instanceId, name)
         });
       } else {
         if (AWSBOX_OWNER != '') {
@@ -133,6 +140,20 @@ vm.listawsboxes(function(err, results) {
               console.log("Sent Termination Notification to", AWSBOX_OWNER);
             }
           });
+        }
+
+        if (parser.argv.dryrun === false) {
+          aws.client.call('TerminateInstances', {
+            InstanceId: instanceId
+          }, function(result) {
+            try { // so we don't get undefined issues for outputting the error
+              console.log("TERMINATION ERROR: ", instanceId, name, result.Errors.Error);
+            } catch(e) {
+              console.log("Terminated AWSBOX: ", instanceId, name, result);
+            }
+          });
+        } else {
+          console.log("Dry Run, skipping termination");
         }
       }
     }
