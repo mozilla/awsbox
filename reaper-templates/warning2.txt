@@ -1,26 +1,26 @@
 Hello, 
 
-This is the AWSBOX Reaper. This is your *FINAL* warning that your AWSBOX: 
+I am the AWSBOX Reaper. 
 
-  ==INSTANCE_NAME==
+This is your FINAL warning that your AWSBOX: 
 
-is going to be terminated. 
+    ==INSTANCE_NAME== 
 
-If you would like to extend the life of your AWSBOX please run this command: 
-
-  > awsbox spare ==INSTANCE_ID==
-
-and I will let it live for a little while longer. 
+will be terminated in 24 hours!
 
 
-If this AWSBOX should NEVER be shutdown please run this command: 
+To add an extra week to your AWSBOX use this command: 
 
-  > awsbox NOKILL ==INSTANCE_ID==
+    > awsbox spare ==INSTANCE_ID==
 
-and I will ignore it forever.
 
-If you do not need it anymore please ignore this warning. 
+To have me ignore the box forever use this command:
+
+    > awsbox NOKILL ==INSTANCE_ID==
+
+
+If you do not need it anymore please ignore this warning and 
+I'll take care of it. 
 
 Thank you. 
-
 AWSBOX Reaper.

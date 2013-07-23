@@ -11,35 +11,34 @@ aws = require('./lib/aws.js'),
 path = require('path'),
 vm = require('./lib/vm.js'),
 reaper = require('./lib/reaper.js'),
-mailer = require('nodemailer').createTransport('SMTP', { host: 'localhost' }),  // TODO improve
+mailer = require('nodemailer').createTransport('sendmail'),  // TODO improve
 fs = require('fs'),
 optimist = require('optimist');
 
 var parser = optimist
   .usage('awsbox reap: reap VMs that have been running for too long')
   .describe('dryrun', 'Perform a dry run')
-  .boolean('dryrun')
-  .default('dryrun', true)
-  .describe('warn1', 'num. hours old for first warning')
-  .default('warn1', 5 * 24)
-  .describe('warn2', 'num. hours after 1st warning to send final warning')
-  .default('warn2', 24)
-  .describe('terminate', 'num. hours after 2nd warning to terminate the box')
-  .default('terminate', 24);
+  .boolean('dryrun');
+
+// schedule to for warnings to turning off the AWSBOX
+const
+  WARN1_TIME     = 24 * 5,      // 5th day, send first warning
+  WARN2_TIME     = 24,          // 6th day, send the final warning
+  TERMINATE_TIME = 24;          // 7th day, shut down the box
 
 // load email templates
 
-var warning1  = fs.readFileSync(__dirname + '/reaper-templates/warning1.txt');
-console.log(warning1);
-process.exit();
+var tplWarning1  = fs.readFileSync(__dirname + '/reaper-templates/warning1.txt', 'utf8'),
+    tplWarning2  = fs.readFileSync(__dirname + '/reaper-templates/warning2.txt', 'utf8'),
+    tplTerminated  = fs.readFileSync(__dirname + '/reaper-templates/terminated.txt', 'utf8');
 
 
 vm.listawsboxes(function(err, results) {
   Object.keys(results).forEach(function(instanceName) {
     var i = results[instanceName], 
         instanceId = i.instanceId, 
-        name = (typeof(i.tags['Name']) !== undefined && i.tags['name'] !== '') ? 
-          i.tags['name'] : 'un-named'
+        name = (typeof(i.tags['Name']) !== 'undefined' && i.tags['Name'] !== '') ? 
+          i.tags['Name'] : 'un-named'
     ;
 
     if (typeof(i.tags['AWSBOX_NOKILL']) != 'undefined') {
@@ -65,8 +64,23 @@ vm.listawsboxes(function(err, results) {
             return;
           }
       });
-    } else if (AWSBOX_REAP.state === 1 && AWSBOX_REAP.deltaHours > parser.argv.warn1) {
-      console.log("Sending warning 1", instanceId, name);
+    } else if (AWSBOX_REAP.state === 1 && AWSBOX_REAP.deltaHours > WARN1_TIME) {
+      if (AWSBOX_OWNER != '') {
+        mailer.sendMail({
+          from: "AWSBOX Reaper <reaper@nodomain.none>",
+          to  : AWSBOX_OWNER,
+          subject: "Warning #1: Your AWSBOX [" + name + "] is scheduled to be terminated",
+          text: tplWarning1
+                  .replace(/==INSTANCE_ID==/g, instanceId)
+                  .replace(/==INSTANCE_NAME==/g, name)
+        }, function(err, response) {
+          if (err) {
+            console.error("ERROR sending warning 1", err, AWSBOX_OWNER);
+          } else {
+            console.log("Sent Warning #1 to ", AWSBOX_OWNER);
+          }
+        });
+      }
 
       reaper.setState(instanceId, 2, function(err) {
           if (err) {
@@ -74,15 +88,30 @@ vm.listawsboxes(function(err, results) {
             return;
           }
       });
-    } else if (AWSBOX_REAP.state === 2 && AWSBOX_REAP.deltaHours > parser.argv.warn2) {
-      console.log("sending warning 2");
+    } else if (AWSBOX_REAP.state === 2 && AWSBOX_REAP.deltaHours > WARN2_TIME) {
+      if (AWSBOX_OWNER != '') {
+        mailer.sendMail({
+          from: "AWSBOX Reaper <reaper@nodomain.none>",
+          to  : AWSBOX_OWNER,
+          subject: "FINAL Warning: Your AWSBOX [" + name + "] is scheduled to be terminated",
+          text: tplWarning2.replace(/==INSTANCE_ID==/g, instanceId).replace(/==INSTANCE_NAME==/g, name)
+        }, function(err, response) {
+          if (err) {
+            console.error("ERROR sending warning 2", err, AWSBOX_OWNER);
+          } else {
+            console.log("Sent Warning #2 to ", AWSBOX_OWNER);
+          }
+        });
+      }
+
       reaper.setState(instanceId, 3, function(err) {
           if (err) {
             console.error('ERROR Setting second warning state');
             return;
           }
       });
-    } else if (AWSBOX_REAP.state === 3 && AWSBOX_REAP.deltaHours > parser.argv.terminate) {
+
+    } else if (AWSBOX_REAP.state === 3 && AWSBOX_REAP.deltaHours > TERMINATE_TIME) {
       if (typeof(i.tags['AWSBOX_SPAREME']) !== 'undefined') {
         vm.deleteTags(instanceId, ['AWSBOX_SPAREME', 'AWSBOX_REAP'], function(err) {
           if (err) {
@@ -91,7 +120,20 @@ vm.listawsboxes(function(err, results) {
           }
         });
       } else {
-        console.log("Deleting instance: ", instanceId);
+        if (AWSBOX_OWNER != '') {
+          mailer.sendMail({
+            from: "AWSBOX Reaper <reaper@nodomain.none>",
+            to  : AWSBOX_OWNER,
+            subject: "FINAL Warning: Your AWSBOX [" + name + "] is scheduled to be terminated",
+            text: tplTerminated.replace(/==INSTANCE_ID==/g, instanceId).replace(/==INSTANCE_NAME==/g, name)
+          }, function(err, response) {
+            if (err) {
+              console.error("ERROR sending termination notification", err, AWSBOX_OWNER);
+            } else {
+              console.log("Sent Termination Notification to", AWSBOX_OWNER);
+            }
+          });
+        }
       }
     }
   });

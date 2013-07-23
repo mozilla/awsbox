@@ -1,11 +1,11 @@
 Hello, 
 
-This is the AWSBOX Reaper. This is to let you know that your AWSBOX:
+This is the AWSBOX Reaper. 
+
+This is to let you know that your AWSBOX has been terminated:
 
   ==INSTANCE_NAME==
 
-has been terminated.
 
 Have a nice day. 
-
 AWSBOX Reaper.
