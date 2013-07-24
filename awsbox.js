@@ -561,6 +561,35 @@ verbs['removekey'] = function(args) {
 };
 verbs['removekey'].doc = "remove a specific ssh key from an instance";
 
+
+/* reaper specific keys */
+verbs['spare'] = function(args) {
+  if (args.length != 1) {
+    throw 'Args required for spare: instance_id'.error;
+  }
+
+  var instanceId = args[0];
+  vm.setTag(instanceId, 'AWSBOX_SPAREME', '1', function(err) {
+    if (err) {
+      console.error("ERROR: ", err);
+    }
+  });
+};
+verbs['spare'].doc = 'spare the box from the reaper for another week'
+verbs['nokill'] = function(args) {
+  if (args.length != 1) {
+    throw 'Args required for nokill: instance_id'.error;
+  }
+
+  var instanceId = args[0];
+  vm.setTag(instanceId, 'AWSBOX_NOKILL', '1', function(err) {
+    if (err) {
+      console.error("ERROR: ", err);
+    }
+  });
+};
+verbs['nokill'].doc = 'prevent the reaper from terminating this box'
+
 if (process.argv.length <= 2) fail();
 
 var verb = process.argv[2].toLowerCase();

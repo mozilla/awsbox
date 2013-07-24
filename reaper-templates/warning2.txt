@@ -16,7 +16,7 @@ To add an extra week to your AWSBOX use this command:
 
 To have me ignore the box forever use this command:
 
-    > awsbox NOKILL ==INSTANCE_ID==
+    > awsbox nokill ==INSTANCE_ID==
 
 
 If you do not need it anymore please ignore this warning and 
