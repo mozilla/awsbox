@@ -1,0 +1,26 @@
+Hello, 
+
+I am the AWSBOX Reaper. 
+
+This is your FINAL warning that your AWSBOX: 
+
+    ==INSTANCE_NAME== 
+
+will be terminated in 24 hours!
+
+
+To add an extra week to your AWSBOX use this command: 
+
+    > awsbox spare ==INSTANCE_ID==
+
+
+To have me ignore the box forever use this command:
+
+    > awsbox nokill ==INSTANCE_ID==
+
+
+If you do not need it anymore please ignore this warning and 
+I'll take care of it. 
+
+Thank you. 
+AWSBOX Reaper.

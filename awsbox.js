@@ -2,6 +2,11 @@
 
 process.title = 'awsbox';
 
+// allow support for multiple sources for the ID / Secret
+// AWS_ACCESS_KEY and AWS_SECRET_KEY are used by the EC2 CLI tools so these are preferred
+process.env['AWS_ID'] = process.env['AWS_ID'] || process.env['AWS_ACCESS_KEY'];
+process.env['AWS_SECRET'] = process.env['AWS_SECRET'] || process.env['AWS_KEY'] || process.env['AWS_SECRET_KEY']
+
 const
 aws = require('./lib/aws.js'),
 path = require('path'),
@@ -19,11 +24,6 @@ util = require('util'),
 fs = require('fs'),
 relativeDate = require('relative-date'),
 existsSync = fs.existsSync || path.existsSync; // existsSync moved path to fs in 0.7.x
-
-// allow multiple different env vars
-[ 'AWS_KEY', 'AWS_SECRET_KEY', 'AWS_ACCESS_KEY' ].forEach(function(x) {
-  process.env['AWS_SECRET'] = process.env['AWS_SECRET'] || process.env[x];
-});
 
 colors.setTheme({
   input: 'grey',
@@ -177,6 +177,7 @@ verbs['zones'] = function(args) {
   });
 };
 verbs['zones'].doc = "list amazon availability zones";
+
 
 verbs['create'] = function(args) {
   var parser = optimist(args)
@@ -416,6 +417,21 @@ verbs['list'] = function(args) {
 };
 verbs['list'].doc = "\tlist all VMs on the aws account";
 
+verbs['list-awsboxes'] = function(args) {
+  vm.listawsboxes(function(err, r) {
+    checkErr(err);
+    Object.keys(r).forEach(function(k) {
+      var v = r[k];
+      var dispName = v.name;
+      if (dispName.indexOf(v.instanceId) === -1) dispName += " {" + v.instanceId + "}";
+      console.log(util.format('  %s:\t\n    %s, %s, launched %s (%s)\n',
+                              dispName, v.ipAddress, v.instanceType,
+                              relativeDate(v.launchTime), v.launchTime));
+    });
+  });
+};
+verbs['list-awsboxes'].doc = 'list all AWSBOX instances on the aws account';
+
 verbs['update'] = function(args) {
   if (!args || args.length != 1) {
     throw 'missing required argument: name of instance'.error;
@@ -544,6 +560,35 @@ verbs['removekey'] = function(args) {
   });
 };
 verbs['removekey'].doc = "remove a specific ssh key from an instance";
+
+
+/* reaper specific keys */
+verbs['spare'] = function(args) {
+  if (args.length != 1) {
+    throw 'Args required for spare: instance_id'.error;
+  }
+
+  var instanceId = args[0];
+  vm.setTag(instanceId, 'AWSBOX_SPAREME', '1', function(err) {
+    if (err) {
+      console.error("ERROR: ", err);
+    }
+  });
+};
+verbs['spare'].doc = 'spare the box from the reaper for another week'
+verbs['nokill'] = function(args) {
+  if (args.length != 1) {
+    throw 'Args required for nokill: instance_id'.error;
+  }
+
+  var instanceId = args[0];
+  vm.setTag(instanceId, 'AWSBOX_NOKILL', '1', function(err) {
+    if (err) {
+      console.error("ERROR: ", err);
+    }
+  });
+};
+verbs['nokill'].doc = 'prevent the reaper from terminating this box'
 
 if (process.argv.length <= 2) fail();
 
