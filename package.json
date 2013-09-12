@@ -23,7 +23,9 @@
     "optimist": "0.3.1",
     "urlparse": "0.0.1",
     "relative-date": "1.1.1",
-    "colors": "~0.6.0-1"
+    "colors": "~0.6.0-1",
+    "awssum": "1.1.0",
+    "awssum-amazon": "1.1.0"
   },
   "devDependencies": {},
   "scripts": {},
