@@ -20,8 +20,11 @@ fs = require('fs'),
 relativeDate = require('relative-date'),
 existsSync = fs.existsSync || path.existsSync; // existsSync moved path to fs in 0.7.x
 
-// allow multiple different env vars
-[ 'AWS_KEY', 'AWS_SECRET_KEY', 'AWS_ACCESS_KEY' ].forEach(function(x) {
+// allow multiple different env vars (for the canonical AWS_ID and AWS_SECRET)
+[ 'AWS_KEY', 'AWS_ID', 'AWS_ACCESS_KEY' ].forEach(function(x) {
+  process.env['AWS_ID'] = process.env['AWS_ID'] || process.env[x];
+});
+[ 'AWS_SECRET', 'AWS_SECRET_KEY' ].forEach(function(x) {
   process.env['AWS_SECRET'] = process.env['AWS_SECRET'] || process.env[x];
 });
 
@@ -112,25 +115,23 @@ verbs['destroy'] = function(args) {
       git.removeRemote(name, deets.ipAddress, function(err) {
         console.log(err ? "failed: ".error + err : "done");
 
-        if (process.env['ZERIGO_DNS_KEY']) {
-          process.stdout.write("trying to remove DNS: ".warn);
-          var dnsKey = process.env['ZERIGO_DNS_KEY'];
-          dns.findByIP(dnsKey, deets.ipAddress, function(err, fqdns) {
-            checkErr(err);
-            if (!fqdns.length) return console.log("no dns entries found".info);
-            console.log(fqdns.join(', '));
-            function removeNext() {
-              if (!fqdns.length) return;
-              var fqdn = fqdns.shift();
-              process.stdout.write("deleting ".warn + fqdn + ": ");
-              dns.deleteRecord(dnsKey, fqdn, function(err) {
-                console.log(err ? "failed: ".error + err : "done");
-                removeNext();
-              });
-            }
-            removeNext();
-          });
-        }
+        process.stdout.write("trying to remove DNS: ".warn);
+        dns.findByIP(deets.ipAddress, function(err, fqdns) {
+          checkErr(err);
+          if (!fqdns.length) return console.log("no dns entries found".info);
+          console.log(fqdns.join(', '));
+          function removeNext() {
+            if (!fqdns.length) return;
+            var fqdn = fqdns.shift();
+            process.stdout.write("deleting ".warn + fqdn + ": ");
+            dns.deleteRecord(fqdn, function(err) {
+              checkErr(err);
+              console.log("done");
+              removeNext();
+            });
+          }
+          removeNext();
+        });
       });
     }
   });
@@ -138,28 +139,68 @@ verbs['destroy'] = function(args) {
 verbs['destroy'].doc = "teardown a vm, git remote, and DNS";
 
 verbs['test'] = function() {
-  // let's see if we can contact aws and zerigo
+  // let's see if we can contact aws
   process.stdout.write("Checking AWS access: ");
   vm.list(function(err) {
     console.log(err ? "NOT ok: " + err : "good");
 
-    if (process.env['ZERIGO_DNS_KEY']) {
-      process.stdout.write("Checking DNS access: ");
-      dns.inUse(process.env['ZERIGO_DNS_KEY'], 'example.com', function(err, res) {
-        console.log(err ? "NOT ok: " + err : "good");
-      });
-    }
+    process.stdout.write("Checking DNS access: ");
+    dns.inUse('example.com', function(err, res) {
+        if (err) {
+          console.log('Err: ', err);
+          process.exit(1);
+        }
+        console.log('good');
+    });
   });
 }
 verbs['test'].doc = "\tcheck to see if we have AWS credential properly configured";
 
-verbs['findbyip'] = function(args) {
-  if (!process.env['ZERIGO_DNS_KEY']) fail('ZERIGO_DNS_KEY env var missing');
-  dns.findByIP(process.env['ZERIGO_DNS_KEY'], args[0], function(err, fqdns) {
-    console.log(err, fqdns);
+verbs['listdomains'] = function(args) {
+  dns.listDomains(function(err, zones) {
+    if (err) {
+      return console.log('Err: ', err);
+    }
+    zones.forEach(function(zone) {
+      console.log(zone.name);
+    });
   });
 };
-verbs['findbyip'].doc = "find a hostname given an ip address (via zerigo, requires ZERIGO_DNS_KEY)";
+verbs['listdomains'].doc = "lists all domains in Route53";
+
+verbs['listhosts'] = function(args) {
+  if (!args || args.length !== 1) {
+    throw 'missing required argument: name of domain'.error;
+  }
+
+  var domainName = args[0];
+  process.stdout.write("Listing hosts for " + domainName + ": ");
+  dns.listHosts(domainName, function(err, hosts) {
+    if (err) {
+      return console.log('Err: ', err);
+    }
+
+    console.log('done');
+
+    hosts.forEach(function(host) {
+      host.values.forEach(function(val) {
+        console.log(host.name + ' ' + host.ttl + ' ' + host.type + ' ' + val);
+      });
+    });
+  });
+};
+verbs['listhosts'].doc = "lists all hosts in a domain: <domain>";
+
+verbs['findbyip'] = function(args) {
+  dns.findByIP(args[0], function(err, found) {
+    if (err) {
+      console.log("ERROR:", err);
+      process.exit(1);
+    }
+    console.log(found.join("\n"));
+  });
+};
+verbs['findbyip'].doc = "find a hostname given an ip address";
 
 verbs['zones'] = function(args) {
   aws.zones(function(err, r) {
@@ -176,12 +217,69 @@ verbs['zones'] = function(args) {
     });
   });
 };
-verbs['zones'].doc = "list amazon availability zones";
+verbs['zones'].doc = "list Amazon regions and availability zones";
+
+verbs['updaterecord'] = function(args) {
+  var hostname = args[0];
+  var ipAddress = args[1];
+  dns.updateRecord(hostname, ipAddress, function(err, changeInfo, ee) {
+    if (err) {
+      console.log("ERROR:", err);
+      process.exit(1);
+    }
+
+    console.log('Record updated, changeId=%s', changeInfo.changeId);
+
+    // now let's wait for the change to be in sync
+    console.log('Waiting for change to be INSYNC ...');
+    ee
+      .on('attempt', function() {
+        console.log('- still waiting ...');
+      })
+      .on('insync', function() {
+        console.log('Change now INSYNC');
+        console.log('Updated ' + hostname);
+      })
+      .on('err', function(err) {
+        console.log('Err: ', err);
+      })
+   ;
+  });
+};
+verbs['updaterecord'].doc = "updated a resource record's A value. e.g. updaterecord sub.example.com 1.2.3.4";
+
+verbs['deleterecord'] = function(args) {
+  var hostname = args[0];
+  dns.deleteRecord(hostname, function(err, changeInfo, ee) {
+    if (err) {
+      console.log("ERROR:", err);
+      process.exit(1);
+    }
+
+    console.log('Record deleted, changeId=%s', changeInfo.changeId);
+
+    // now let's wait for the change to be in sync
+    console.log('Waiting for change to be INSYNC ...');
+    ee
+      .on('attempt', function() {
+        console.log('- still waiting ...');
+      })
+      .on('insync', function() {
+        console.log('Change now INSYNC');
+        console.log('Deleted ' + hostname);
+      })
+      .on('err', function(err) {
+        console.log('Err: ', err);
+      })
+   ;
+  });
+};
+verbs['deleterecord'].doc = "delete a resource record. e.g. sub.example.com (this does not delete zones)";
 
 verbs['create'] = function(args) {
   var parser = optimist(args)
     .usage('awsbox create: Create a VM')
-    .describe('d', 'setup DNS via zerigo (requires ZERIGO_DNS_KEY in env)')
+    .describe('d', 'setup DNS via Route53')
     .describe('dnscheck', 'whether to check for existing DNS records')
     .boolean('dnscheck')
     .default('dnscheck', true)
@@ -246,22 +344,24 @@ verbs['create'] = function(args) {
 
   console.log("attempting to set up VM \"" + name + "\"");
 
-  var dnsKey;
   var dnsHost;
   if (opts.d) {
     if (!opts.u) checkErr('-d is meaningless without -u (to set DNS I need a hostname)');
-    if (!process.env['ZERIGO_DNS_KEY']) checkErr('-d requires ZERIGO_DNS_KEY env var');
-    dnsKey = process.env['ZERIGO_DNS_KEY'];
     dnsHost = urlparse(opts.u).host;
+    console.log('You said -d, so we shall check dnsHost=' + dnsHost);
     if (opts.dnscheck) {
       console.log("   ... Checking for DNS availability of " + dnsHost);
     }
   }
 
-  dns.inUse(dnsKey, dnsHost, function(err, res) {
-    checkErr(err);
+  dns.inUse(dnsHost, function(err, res) {
+    if (err) {
+      console.log("ERROR:", err);
+      process.exit(1);
+    }
+
     if (res && opts.dnscheck) {
-      checkErr('that domain is in use, pointing at ' + res.data);
+      checkErr('that domain is in use, pointing at ' + JSON.stringify(res.values));
     }
 
     vm.startImage({
@@ -278,7 +378,7 @@ verbs['create'] = function(args) {
 
         if (dnsHost) console.log("   ... Adding DNS Record for " + dnsHost);
 
-        dns.updateRecord(dnsKey, dnsHost, deets.ipAddress, function(err) {
+        dns.updateRecord(dnsHost, deets.ipAddress, function(err) {
           checkErr(err ? 'updating DNS: ' + err : err);
 
           console.log("   ... Instance ready, setting human readable name in aws");
@@ -555,16 +655,16 @@ if (!process.env['AWS_ID'] || !process.env['AWS_SECRET']) {
   fail('Missing aws credentials\nPlease configure the AWS_ID and AWS_SECRET environment variables.');
 }
 
-// if there is a region supplied, then let's use it
-aws.setRegion(process.env['AWS_REGION'], function(err, region) {
-  try {
-    if (err) throw err;
-    if (region) console.log("(Using region", region.region + ")");
-    verbs[verb](process.argv.slice(3));
-  } catch(e) {
-    fail("error running '".error + verb + "' command: ".error + e);
-  }
-});
+// set the region (or use the default if none supplied)
+var region = aws.createClients(process.env['AWS_REGION']);
+console.log("(Using region", region + ")");
+
+// now call the command
+try {
+  verbs[verb](process.argv.slice(3));
+} catch(e) {
+  fail("error running '".error + verb + "' command: ".error + e);
+}
 
 function fail(error) {
   if (error && typeof error.message === 'function') error = error.message();

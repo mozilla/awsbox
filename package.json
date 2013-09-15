@@ -2,25 +2,30 @@
   "author": "Lloyd Hilaiel <lloyd@hilaiel.com> (http://lloyd.io)",
   "name": "awsbox",
   "description": "A featherweight, DIY, PaaS system for deploying on NodeJS apps on Amazon's EC2",
-  "version": "0.4.5",
+  "version": "0.5.0",
   "homepage": "http://awsbox.org",
   "repository": {
     "type": "git",
-    "url": "https://github.com/lloyd/awsbox.git"
+    "url": "https://github.com/mozilla/awsbox.git"
   },
   "main": "src/awsbox.js",
   "engines": {
-    "node": ">=0.4.7"
+    "node": ">=0.8"
   },
   "dependencies": {
-    "aws-lib": "0.0.5",
+    "awssum-amazon-ec2": "1.x",
+    "awssum-amazon-route53": "1.x",
+    "nice-route53": "0.3.x",
+    "async" : "0.2.x",
     "JSONSelect": "0.4.0",
     "temp": "0.4.0",
     "xml2js": "0.1.13",
     "optimist": "0.3.1",
     "urlparse": "0.0.1",
     "relative-date": "1.1.1",
-    "colors": "~0.6.0-1"
+    "colors": "~0.6.0-1",
+    "awssum": "1.1.0",
+    "awssum-amazon": "1.1.0"
   },
   "devDependencies": {},
   "scripts": {},
