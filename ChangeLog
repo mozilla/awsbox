@@ -1,3 +1,6 @@
+0.5.1 -
+	* fix malformed exception for non-zero exit code in hook
+
 0.5.0 -
 	* node 0.10.18
 	* route53 support added, zerigo support droped (thanks @chilts): #62
