@@ -577,34 +577,52 @@ verbs['addkey'] = function(args) {
   }
 
   var name = [ validateName(args[0]) ];
-  var keys = getKeyTexts(args[1]);
-  var numKeys = keys.length;
   var added = 0;
 
   vm.describe(name, function(err, deets) {
     if (err) fail(err);
 
-    // We don't want a whole bunch of asynchronous ssh processes adding
-    // and removing keys from the same file at the same time.  Ensure
-    // only one key is added at a time.
-    console.log("Adding the " + numKeys + " key" + (numKeys > 1 ? "s" : "") + " found in that file.");
-    addNextKey();
+    fs.stat(args[1], function(err, rez) {
+      if (err) {
+        console.error("error reading keys:", err.toString());
+      } else if (rez.isFile()) {
+        var keys = getKeyTexts(args[1]);
+        var numKeys = keys.length;
 
-    function maybeAddAnotherKey() {
-      added += 1;
-      if (added < numKeys) {
+        // We don't want a whole bunch of asynchronous ssh processes adding
+        // and removing keys from the same file at the same time.  Ensure
+        // only one key is added at a time.
+        console.log("Adding the " + numKeys + " key" + (numKeys > 1 ? "s" : "") + " found in that file.");
         addNextKey();
-      } else {
-        console.log("done.".info);
-        return;
-      }
-    }
 
-    function addNextKey() {
-      var key = keys[added];
-      console.log("\nAdding key: ".warn + key);
-      ssh.addSSHPubKey(deets.ipAddress, key, maybeAddAnotherKey);
-    }
+        function maybeAddAnotherKey() {
+          added += 1;
+          if (added < numKeys) {
+            addNextKey();
+          } else {
+            console.log("done.".info);
+            return;
+          }
+        }
+
+        function addNextKey() {
+          var key = keys[added];
+          console.log("\nAdding key: ".warn + key);
+          ssh.addSSHPubKey(deets.ipAddress, key, maybeAddAnotherKey);
+        }
+      } else if (rez.isDirectory()) {
+        var nKeys = 0;
+        key.addKeysFromDirectory(deets.ipAddress, args[1], function(msg) {
+          nKeys++;
+          console.log(" +", msg);
+        }, function(err) {
+          if (err) console.error("failed to add keys:", err);
+          else console.log("added", nKeys, "key(s)");
+        });
+      } else {
+        console.error("neither a file nor a directory:", args[1]);
+      }
+    });
   });
 };
 verbs['addkey'].doc = "add an ssh key to an instance: <instance> <file_or_dir>";
