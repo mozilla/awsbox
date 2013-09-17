@@ -354,8 +354,10 @@ verbs['create'] = function(args) {
     }
   }
 
+  // for a simplified code flow, we'll always check if the dns address is in use.
+  // we ignore an error if -d (setup dns) is not specified)
   dns.inUse(dnsHost, function(err, res) {
-    if (err) {
+    if (opts.d && err) {
       console.log("ERROR:", err);
       process.exit(1);
     }
@@ -379,7 +381,7 @@ verbs['create'] = function(args) {
         if (dnsHost) console.log("   ... Adding DNS Record for " + dnsHost);
 
         dns.updateRecord(dnsHost, deets.ipAddress, function(err) {
-          checkErr(err ? 'updating DNS: ' + err : err);
+          checkErr((opts.d && err) ? 'updating DNS: ' + err : null);
 
           console.log("   ... Instance ready, setting human readable name in aws");
           vm.setName(r.instanceId, longName, function(err) {
