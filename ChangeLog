@@ -1,3 +1,13 @@
+0.5.0 -
+	* node 0.10.18
+	* route53 support added, zerigo support droped (thanks @chilts): #62
+	* port to awssum (awesome, @chilts): #63
+	* stream from subcommands with .spawn() (thanks @spitimage): #69
+	* prevent local and remote command injection in ssh.js (thanks @nmam): #70
+	* fix bug when remote_hooks is in use: #79
+	* include strace on vm: #81
+	* latest security updates
+
 0.4.5 -
 	* allow one to specify a different AMI in their .awsbox.json (thanks @dannycoates): #65
 	* improve documentation, one can use the --save-dev flag (thanks @lvnilesh): #66
