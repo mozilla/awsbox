@@ -44,7 +44,8 @@ var verbs = {};
 
 function checkErr(err) {
   if (err) {
-    process.stderr.write('ERRORE FATALE: '.error + err + "\n");
+    if (err.msg) err = err.msg;
+    console.error('ERRORE FATALE: '.error, err);
     process.exit(1);
   }
 }
