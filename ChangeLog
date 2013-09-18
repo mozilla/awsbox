@@ -2,6 +2,7 @@
 	* code cleanup
 	* improved error message on DNS failure
 	* addkey command now accepts a directory
+	* fix bug with domains with over 100 records
 
 0.5.1 -
 	* fix malformed exception for non-zero exit code in hook
