@@ -146,12 +146,8 @@ verbs['test'] = function() {
     console.log(err ? "NOT ok: " + err : "good");
 
     process.stdout.write("Checking DNS access: ");
-    dns.inUse('example.com', function(err, res) {
-        if (err) {
-          console.log('Err: ', err);
-          process.exit(1);
-        }
-        console.log('good');
+    dns.listDomains(function(err) {
+      console.log(err ? "NOT ok: " + err : "good");
     });
   });
 }
