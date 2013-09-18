@@ -3,6 +3,9 @@
 	* improved error message on DNS failure
 	* addkey command now accepts a directory
 	* fix bug with domains with over 100 records
+	* add 'search' command
+	* sort output of list & search with newest boxes last
+	* if DNS is specified, it's added as an InitialDNS tag on the spun vm
 
 0.5.1 -
 	* fix malformed exception for non-zero exit code in hook
