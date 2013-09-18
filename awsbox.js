@@ -381,7 +381,7 @@ verbs['create'] = function(args) {
         if (dnsHost) console.log("   ... Adding DNS Record for " + dnsHost);
 
         dns.updateRecord(dnsHost, deets.ipAddress, function(err) {
-          checkErr((opts.d && err) ? 'updating DNS: ' + err : null);
+          checkErr((opts.d && err) ? 'updating DNS: ' + err.msg : null);
 
           console.log("   ... Instance ready, setting human readable name in aws");
           vm.setName(r.instanceId, longName, function(err) {
