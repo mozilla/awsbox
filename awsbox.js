@@ -501,7 +501,14 @@ verbs['createami'] = function(args) {
 verbs['createami'].doc = "create an ami from an EC2 instance - WILL DESTROY INSTANCE";
 
 function formatVMList(r) {
-  Object.keys(r).forEach(function(k) {
+  // sort by newest last.
+  var vmNames = Object.keys(r);
+
+  vmNames.sort(function(a, b) {
+    return r[a].launchTime > r[b].launchTime;
+  });
+
+  vmNames.forEach(function(k) {
     var v = r[k];
     var dispName = v.name;
     if (dispName.indexOf(v.instanceId) === -1) dispName += " {" + v.instanceId + "}";
