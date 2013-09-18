@@ -577,8 +577,6 @@ verbs['addkey'] = function(args) {
   }
 
   var name = [ validateName(args[0]) ];
-  var added = 0;
-
   vm.describe(name, function(err, deets) {
     if (err) fail(err);
 
@@ -595,6 +593,7 @@ verbs['addkey'] = function(args) {
         console.log("Adding the " + numKeys + " key" + (numKeys > 1 ? "s" : "") + " found in that file.");
         addNextKey();
 
+        var added = 0;
         function maybeAddAnotherKey() {
           added += 1;
           if (added < numKeys) {
