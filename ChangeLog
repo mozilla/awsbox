@@ -1,3 +1,6 @@
+0.5.3 -
+	* fix race in library function git.currentSHA - wait for "close": #98
+
 0.5.2 -
 	* code cleanup
 	* improved error message on DNS failure
