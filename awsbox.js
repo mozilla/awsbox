@@ -381,7 +381,10 @@ verbs['create'] = function(args) {
           checkErr((opts.d && err) ? 'updating DNS: ' + err.msg : null);
 
           console.log("   ... Instance ready, setting human readable name in aws");
-          vm.setName(r.instanceId, longName, function(err) {
+          vm.setTags(r.instanceId, {
+            Name: longName,
+            InitialDNS: dnsHost
+          }, function(err) {
             checkErr(err);
             console.log("   ... name set, waiting for ssh access and configuring");
             var config = { public_url: (opts.u || "http://" + deets.ipAddress) };
