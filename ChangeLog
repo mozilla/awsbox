@@ -1,3 +1,8 @@
+0.5.2 -
+	* code cleanup
+	* improved error message on DNS failure
+	* addkey command now accepts a directory
+
 0.5.1 -
 	* fix malformed exception for non-zero exit code in hook
 	* fix errors during hook execution
