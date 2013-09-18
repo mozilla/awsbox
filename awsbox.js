@@ -500,20 +500,37 @@ verbs['createami'] = function(args) {
 };
 verbs['createami'].doc = "create an ami from an EC2 instance - WILL DESTROY INSTANCE";
 
+function formatVMList(r) {
+  Object.keys(r).forEach(function(k) {
+    var v = r[k];
+    var dispName = v.name;
+    if (dispName.indexOf(v.instanceId) === -1) dispName += " {" + v.instanceId + "}";
+    console.log(util.format('  %s:\t\n    %s, %s, launched %s\n',
+                            dispName, v.ipAddress, v.instanceType,
+                            relativeDate(v.launchTime)));
+  });
+}
+
 verbs['list'] = function(args) {
   vm.list(function(err, r) {
     checkErr(err);
-    Object.keys(r).forEach(function(k) {
-      var v = r[k];
-      var dispName = v.name;
-      if (dispName.indexOf(v.instanceId) === -1) dispName += " {" + v.instanceId + "}";
-      console.log(util.format('  %s:\t\n    %s, %s, launched %s\n',
-                              dispName, v.ipAddress, v.instanceType,
-                              relativeDate(v.launchTime)));
-    });
+    formatVMList(r);
   });
 };
 verbs['list'].doc = "\tlist all VMs on the aws account";
+
+verbs['search'] = function(args) {
+  if (!args || args.length != 1) {
+    throw 'missing required argument: search token'.error;
+  }
+
+  vm.search(args[0], function(err, r) {
+    checkErr(err);
+    console.log(Object.keys(r).length + " matching vm(s):");
+    formatVMList(r);
+  });
+};
+verbs['search'].doc = "search for VMs by ip, name, whatevs.";
 
 verbs['update'] = function(args) {
   if (!args || args.length != 1) {
