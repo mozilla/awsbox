@@ -18,7 +18,9 @@ config = require('./lib/config'),
 util = require('util'),
 fs = require('fs'),
 relativeDate = require('relative-date'),
+async = require('async'),
 existsSync = fs.existsSync || path.existsSync; // existsSync moved path to fs in 0.7.x
+
 
 // allow multiple different env vars (for the canonical AWS_ID and AWS_SECRET)
 [ 'AWS_KEY', 'AWS_ID', 'AWS_ACCESS_KEY' ].forEach(function(x) {
@@ -466,6 +468,15 @@ verbs['create'] = function(args) {
 verbs['create'].doc = "create an EC2 instance, -h for help".info;
 
 verbs['createami'] = function(args) {
+  // "createami" takes a target instance, cleans it up, and generates
+  // an awsbox base image for every region from it.  It works like this:
+  // 1. clean up the instance
+  // 2. create an AMI in the region where the instance resides
+  // 3. copy that AMI to all AWS regions
+  // 4. write a JSON file with per-region AMI ids.
+  // 5. clean up
+  // 6. mfbt
+
   if (!args || args.length != 1) {
     throw 'missing required argument: name of instance'.error;
   }
@@ -473,38 +484,103 @@ verbs['createami'] = function(args) {
   var name = args[0];
   validateName(name);
   var hostname = name;
+  // details of the instance we'll ami-ify
+  var deets;
+  // the initial AMI we'll create from the target instance
+  var newAMIId;
+  // a map of all of the per-region AMIs we create.
+  var amis = {};
 
-  console.log("restoring to a pristine state, and creating AMI image from ".warn + name);
+  console.log(" + restoring to a pristine state, and creating AMI image from".data, name.info);
 
-  vm.describe(name, function(err, deets) {
-    checkErr(err);
-    console.log("instance found, ip ".info + deets.ipAddress + ", restoring");
-    ssh.makePristine(deets.ipAddress, function(err) {
-      console.log("instance is pristine, creating AMI".info);
-      checkErr(err);
-      vm.createAMI(name, function(err, imageId) {
-        checkErr(err);
-        console.log("Created image:".info, imageId, "- waiting for creation and making it public (can take a while)".warn);
-        vm.makeAMIPublic(imageId, function(err) {
-          console.log("  ... still waiting:".warn, err);
-        }, function(err, imageId) {
-          checkErr(err);
-          vm.destroy(name, function(err, deets) {
-            checkErr(err);
-            if (deets && deets.ipAddress) {
-              process.stdout.write("trying to remove git remote: ".warn);
-              git.removeRemote(name, deets.ipAddress, function(err) {
-                // non-fatal
-                if (err) console.log("failed: ".error + err);
-                console.log("All done!".info);
-              });
-            }
-          });
-        });
+  async.series([
+    function(done) {
+      vm.describe(name, function(err, instanceDetails) {
+        deets = instanceDetails;
+        done(err);
       });
+    }, function(done) {
+      // first let's make the ami "pristine"
+      ssh.makePristine(deets.ipAddress, function(err) {
+        if (!err) console.log(" + instance is pristine, creating AMI".data);
+        done(err);
+      });
+    }, function (done) {
+      // next, create an AMI from the image
+      vm.createAMI(deets.instanceId, function(err, imageId) {
+        newAMIId = imageId;
+        if (!err) console.log(" + created image:".data, newAMIId.info, "- waiting for completion (may take a while)".warn);
+        done(err);
+      });
+    }, function (done) {
+      // make the AMI public (and wait for it to be completely instantiated)
+      vm.makeAMIPublic(newAMIId, function(err) {
+        console.log(" +", newAMIId.info, "in progress...");
+      }, function(err) {
+        if (!err) console.log(" + AMI for".data, config.region.info, "complete!, time to copy it around the world...".data);
+        done(err);
+      });
+    }, function(done) {
+      // now find the zones into which we'll clone this AMI
+      aws.zones(function(err, r) {
+        if (err) {
+          console.log("Error enumerating zones:", err);
+          process.exit(1);
+        }
+        var srcRegion = config.region;
+        amis[srcRegion] = newAMIId;
+
+        // for each region, copy the new AMI in.
+        async.each(
+          Object.keys(r), // regions
+          function(tgtRegion, done) {
+            // the region where the initial AMI is created is a no-op
+            if (srcRegion === tgtRegion) return done();
+
+            console.log(" + copying AMI from".data, srcRegion.info, "->".data, tgtRegion.info);
+
+            vm.copyAMI(srcRegion, tgtRegion, newAMIId, function(err, regionAMIId) {
+              if (err) {
+                console.log(" ! copy failed to".error, tgtRegion.error);
+                return done(err);
+              }
+              console.log(" +".data, tgtRegion.info, "ami will have id".data, regionAMIId.info);
+              amis[tgtRegion] = regionAMIId;
+              // now make it public
+              vm.makeAMIPublic(regionAMIId, tgtRegion, function(err) {
+                console.log(" +", tgtRegion, "in progress...");
+              }, function(err) {
+                if (err) {
+                  console.log(" ! failed to complete AMI for ".error, tgtRegion.error);
+                  return done(err);
+                } else {
+                  console.log(" + AMI for".data, tgtRegion.info, "complete!".data);
+                  return done(null);
+                }
+              });
+            });
+          }, function (err) {
+            console.log("AMIs created:".info, amis);
+            // now let's write the ami information into a configuration file
+            fs.writeFile(
+              path.join(".", "defaultImages.json"),
+              JSON.stringify(amis, null, "  "),
+              function(err) {
+                console.log(" + defaultImages.json written, commit and ship it!".info);
+              });
+          });
+      });
+    }
+  ], function(err) {
+    checkErr(err);
+    // finally, clean up.
+    vm.destroy(deets.instanceId, function(err) {
+      checkErr(err);
+      console.log(" + source instance,", deets.instanceId, ",reaped");
     });
   });
 };
+
 verbs['createami'].doc = "create an ami from an EC2 instance - WILL DESTROY INSTANCE";
 
 function formatVMList(r) {
@@ -702,9 +778,8 @@ if (!process.env['AWS_ID'] || !process.env['AWS_SECRET']) {
   fail('Missing aws credentials\nPlease configure the AWS_ID and AWS_SECRET environment variables.');
 }
 
-// set the region (or use the default if none supplied)
-var region = aws.createClients(process.env['AWS_REGION']);
-console.log("(Using region", region + ")");
+console.log("(using region", config.region + ")");
+aws.createClients(config.region);
 
 // now call the command
 try {
