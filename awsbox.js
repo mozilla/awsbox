@@ -619,9 +619,9 @@ verbs['addkey'] = function(args) {
         // and removing keys from the same file at the same time.  Ensure
         // only one key is added at a time.
         console.log("Adding the " + numKeys + " key" + (numKeys > 1 ? "s" : "") + " found in that file.");
+        var added = 0;
         addNextKey();
 
-        var added = 0;
         function maybeAddAnotherKey() {
           added += 1;
           if (added < numKeys) {
