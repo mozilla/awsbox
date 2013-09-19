@@ -1,3 +1,6 @@
+0.5.4 -
+	* fix deploy failure when no url is specified
+
 0.5.3 -
 	* fix race in library function git.currentSHA - wait for "close": #98
 
