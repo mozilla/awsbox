@@ -5,6 +5,7 @@
 	* fix missing error messages
 	* fix regression - security groups should be automatically created if they do not exist
 	  (required for new users of awsbox and multi-region support)
+	* proxy user has increased MAX_FILES (was at 1024)
 
 0.5.3 -
 	* fix race in library function git.currentSHA - wait for "close": #98
