@@ -1,3 +1,7 @@
+0.5.5 -
+	* multi-region support (set AWS_REGION env var)
+	* documentation improvements (thanks @vthunder!)
+
 0.5.4 -
 	* fix deploy failure when no url is specified
 	* fix regression - addkey failed with files
