@@ -1,0 +1,10 @@
+{
+  "us-east-1": "ami-29044e40",
+  "eu-west-1": "ami-9e0befe9",
+  "us-west-2": "ami-bc46d98c",
+  "us-west-1": "ami-c6a69383",
+  "sa-east-1": "ami-f78b2cea",
+  "ap-southeast-1": "ami-94d893c6",
+  "ap-northeast-1": "ami-d9f867d8",
+  "ap-southeast-2": "ami-7ba63b41"
+}
