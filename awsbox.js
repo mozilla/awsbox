@@ -372,7 +372,7 @@ verbs['create'] = function(args) {
       userData: opts.userData
     }, function(err, r) {
       checkErr(err);
-      console.log("   ... VM launched, waiting for startup (should take about 20s)");
+      console.log("   ... instance launched -".data, r.instanceId.info,"- waiting for startup".data);
 
       vm.waitForInstance(r.instanceId, function(err, deets) {
         checkErr(err);
