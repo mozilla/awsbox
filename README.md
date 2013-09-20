@@ -1,6 +1,5 @@
 [![Build Status](https://travis-ci.org/mozilla/awsbox.png?branch=master)](https://travis-ci.org/mozilla/awsbox)
 
-
 ## A Lightweight DIY PaaS for Amazon Web Services
 
 Amazon Web Services (AWS) "Elastic Compute Cloud" provides low cost, instant
@@ -35,7 +34,7 @@ awesome, smart, admirably share their work, have a free service for
 non-commercial deployments, and *just work* for most apps.  But
 sometimes you might want full control.  That you?  Read on...  (NOTE:
 awsbox is *built* on lots of nodejistu stuffs).
-  
+
   [nodejitsu]: http://nodejitsu.com/
 
 So what we maybe want is the convenience of Nodejitsu and Heroku, and the
