@@ -24,10 +24,10 @@ existsSync = fs.existsSync || path.existsSync; // existsSync moved path to fs in
 
 // allow multiple different env vars (for the canonical AWS_ID and AWS_SECRET)
 [ 'AWS_KEY', 'AWS_ID', 'AWS_ACCESS_KEY' ].forEach(function(x) {
-  process.env['AWS_ID'] = process.env['AWS_ID'] || process.env[x];
+  process.env.AWS_ID = process.env.AWS_ID || process.env[x];
 });
 [ 'AWS_SECRET', 'AWS_SECRET_KEY' ].forEach(function(x) {
-  process.env['AWS_SECRET'] = process.env['AWS_SECRET'] || process.env[x];
+  process.env.AWS_SECRET = process.env.AWS_SECRET || process.env[x];
 });
 
 colors.setTheme({
@@ -73,7 +73,7 @@ function validateName(name) {
 
 function validatePath(path) {
   try {
-    var stats = fs.statSync(path);
+    fs.statSync(path);
     return path;
   } catch (err) {
     throw "invalid path! ".error + err.message;
@@ -102,8 +102,8 @@ function copySSLCertIfAvailable(opts, deets, cb) {
   }
 }
 
-verbs['destroy'] = function(args) {
-  if (!args || args.length != 1) {
+verbs.destroy = function(args) {
+  if (!args || args.length !== 1) {
     throw 'missing required argument: name of instance'.error;
   }
   var name = args[0];
@@ -138,10 +138,10 @@ verbs['destroy'] = function(args) {
       });
     }
   });
-}
-verbs['destroy'].doc = "teardown a vm, git remote, and DNS";
+};
+verbs.destroy.doc = "teardown a vm, git remote, and DNS";
 
-verbs['test'] = function() {
+verbs.test = function() {
   // let's see if we can contact aws
   process.stdout.write("Checking AWS access: ");
   vm.list(function(err) {
@@ -152,10 +152,10 @@ verbs['test'] = function() {
       console.log(err ? "NOT ok: " + err : "good");
     });
   });
-}
-verbs['test'].doc = "\tcheck to see if we have AWS credential properly configured";
+};
+verbs.test.doc = "\tcheck to see if we have AWS credential properly configured";
 
-verbs['listdomains'] = function(args) {
+verbs.listdomains = function(/* args */) {
   dns.listDomains(function(err, zones) {
     if (err) {
       return console.log('Err: ', err);
@@ -165,9 +165,9 @@ verbs['listdomains'] = function(args) {
     });
   });
 };
-verbs['listdomains'].doc = "lists all domains in Route53";
+verbs.listdomains.doc = "lists all domains in Route53";
 
-verbs['listhosts'] = function(args) {
+verbs.listhosts = function(args) {
   if (!args || args.length !== 1) {
     throw 'missing required argument: name of domain'.error;
   }
@@ -188,9 +188,9 @@ verbs['listhosts'] = function(args) {
     });
   });
 };
-verbs['listhosts'].doc = "lists all hosts in a domain: <domain>";
+verbs.listhosts.doc = "lists all hosts in a domain: <domain>";
 
-verbs['findbyip'] = function(args) {
+verbs.findbyip = function(args) {
   dns.findByIP(args[0], function(err, found) {
     if (err) {
       console.log("ERROR:", err);
@@ -199,9 +199,9 @@ verbs['findbyip'] = function(args) {
     console.log(found.join("\n"));
   });
 };
-verbs['findbyip'].doc = "find a hostname given an ip address";
+verbs.findbyip.doc = "find a hostname given an ip address";
 
-verbs['zones'] = function(args) {
+verbs.zones = function(/* args */) {
   aws.zones(function(err, r) {
     if (err) {
       console.log("ERROR:", err);
@@ -216,9 +216,9 @@ verbs['zones'] = function(args) {
     });
   });
 };
-verbs['zones'].doc = "list Amazon regions and availability zones";
+verbs.zones.doc = "list Amazon regions and availability zones";
 
-verbs['updaterecord'] = function(args) {
+verbs.updaterecord = function(args) {
   var hostname = args[0];
   var ipAddress = args[1];
   dns.updateRecord(hostname, ipAddress, function(err, changeInfo, ee) {
@@ -245,9 +245,9 @@ verbs['updaterecord'] = function(args) {
    ;
   });
 };
-verbs['updaterecord'].doc = "updated a resource record's A value. e.g. updaterecord sub.example.com 1.2.3.4";
+verbs.updaterecord.doc = "updated a resource record's A value. e.g. updaterecord sub.example.com 1.2.3.4";
 
-verbs['deleterecord'] = function(args) {
+verbs.deleterecord = function(args) {
   var hostname = args[0];
   dns.deleteRecord(hostname, function(err, changeInfo, ee) {
     if (err) {
@@ -273,9 +273,9 @@ verbs['deleterecord'] = function(args) {
    ;
   });
 };
-verbs['deleterecord'].doc = "delete a resource record. e.g. sub.example.com (this does not delete zones)";
+verbs.deleterecord.doc = "delete a resource record. e.g. sub.example.com (this does not delete zones)";
 
-verbs['create'] = function(args) {
+verbs.create = function(args) {
   var parser = optimist(args)
     .usage('awsbox create: Create a VM')
     .describe('d', 'setup DNS via Route53')
@@ -334,8 +334,7 @@ verbs['create'] = function(args) {
 
   var name = opts.n || "noname";
   validateName(name);
-  var hostname =  name;
-  var longName = process.env['USER'] + "'s awsbox deployment (" + name + ')';
+  var longName = process.env.USER + "'s awsbox deployment (" + name + ')';
 
   console.log("reading .awsbox.json");
 
@@ -405,7 +404,7 @@ verbs['create'] = function(args) {
 
             console.log("   ... public url will be:", config.public_url);
 
-            ssh.copyUpConfig(deets.ipAddress, config, function(err, r) {
+            ssh.copyUpConfig(deets.ipAddress, config, function(err) {
               checkErr(err);
               console.log("   ... victory!  server is accessible and configured");
 
@@ -415,24 +414,25 @@ verbs['create'] = function(args) {
                 checkErr(err);
 
                 console.log("   ... applying system updates");
-                ssh.updatePackages(deets.ipAddress, function(err, r) {
+                ssh.updatePackages(deets.ipAddress, function(err) {
                   checkErr(err);
 
                   function postRemote() {
                     console.log("   ... configuring SSL behavior (" + opts.ssl + ")");
-                    ssh.configureProxy(deets.ipAddress, opts.ssl, function(err, r) {
+                    ssh.configureProxy(deets.ipAddress, opts.ssl, function(err) {
                       checkErr(err);
                       if (awsboxJson.packages) {
                         console.log("   ... finally, installing custom packages: " + awsboxJson.packages.join(', '));
                       }
-                      ssh.installPackages(deets.ipAddress, awsboxJson.packages, function(err, r) {
+                      ssh.installPackages(deets.ipAddress, awsboxJson.packages, function(err) {
                         checkErr(err);
-                        hooks.runRemoteHook('postcreate', deets, function(err, r) {
+                        hooks.runRemoteHook('postcreate', deets, function(err) {
                           checkErr(err);
 
-                          copySSLCertIfAvailable(opts, deets, function(err, status) {
+                          copySSLCertIfAvailable(opts, deets, function(err) {
                             checkErr(err);
                             hooks.runLocalHook('postcreate', deets, function(err) {
+                              checkErr(err);
                               printInstructions(name, dnsHost, opts.u, deets);
                             });
                           });
@@ -444,9 +444,9 @@ verbs['create'] = function(args) {
                   if (!opts.remote) {
                     postRemote();
                   } else {
-                    git.addRemote(name, deets.ipAddress, function(err, r) {
+                    git.addRemote(name, deets.ipAddress, function(err) {
                       if (err && /already exists/.test(err)) {
-                        console.log("OOPS! you already have a git remote named '" + name + "'!");
+                        console.log(("OOPS! you already have a git remote named '" + name + "'!").error);
                         console.log("to create a new one: git remote add <name> " +
                                     "app@" + deets.ipAddress + ":git");
                       } else {
@@ -465,9 +465,9 @@ verbs['create'] = function(args) {
     });
   });
 };
-verbs['create'].doc = "create an EC2 instance, -h for help".info;
+verbs.create.doc = "create an EC2 instance, -h for help".info;
 
-verbs['createami'] = function(args) {
+verbs.createami = function(args) {
   // "createami" takes a target instance, cleans it up, and generates
   // an awsbox base image for every region from it.  It works like this:
   // 1. clean up the instance
@@ -477,13 +477,12 @@ verbs['createami'] = function(args) {
   // 5. clean up
   // 6. mfbt
 
-  if (!args || args.length != 1) {
+  if (!args || args.length !== 1) {
     throw 'missing required argument: name of instance'.error;
   }
 
   var name = args[0];
   validateName(name);
-  var hostname = name;
   // details of the instance we'll ami-ify
   var deets;
   // the initial AMI we'll create from the target instance
@@ -514,7 +513,7 @@ verbs['createami'] = function(args) {
       });
     }, function (done) {
       // make the AMI public (and wait for it to be completely instantiated)
-      vm.makeAMIPublic(newAMIId, function(err) {
+      vm.makeAMIPublic(newAMIId, function() {
         console.log(" +", newAMIId.info, "in progress...");
       }, function(err) {
         if (!err) console.log(" + AMI for".data, config.region.info, "complete!, time to copy it around the world...".data);
@@ -547,7 +546,7 @@ verbs['createami'] = function(args) {
               console.log(" +".data, tgtRegion.info, "ami will have id".data, regionAMIId.info);
               amis[tgtRegion] = regionAMIId;
               // now make it public
-              vm.makeAMIPublic(regionAMIId, tgtRegion, function(err) {
+              vm.makeAMIPublic(regionAMIId, tgtRegion, function() {
                 console.log(" +", tgtRegion, "in progress...");
               }, function(err) {
                 if (err) {
@@ -561,12 +560,14 @@ verbs['createami'] = function(args) {
             });
           }, function (err) {
             console.log("AMIs created:".info, amis);
+            if (err) console.log("with errors:".error, err);
             // now let's write the ami information into a configuration file
             fs.writeFile(
               path.join(".", "defaultImages.json"),
               JSON.stringify(amis, null, "  "),
-              function(err) {
+              function(writeFileErr) {
                 console.log(" + defaultImages.json written, commit and ship it!".info);
+                done(err || writeFileErr);
               });
           });
       });
@@ -581,7 +582,7 @@ verbs['createami'] = function(args) {
   });
 };
 
-verbs['createami'].doc = "create an ami from an EC2 instance - WILL DESTROY INSTANCE";
+verbs.createami.doc = "create an ami from an EC2 instance - WILL DESTROY INSTANCE";
 
 function formatVMList(r) {
   // sort by newest last.
@@ -601,16 +602,16 @@ function formatVMList(r) {
   });
 }
 
-verbs['list'] = function(args) {
+verbs.list = function(/* args */) {
   vm.list(function(err, r) {
     checkErr(err);
     formatVMList(r);
   });
 };
-verbs['list'].doc = "\tlist all VMs on the aws account";
+verbs.list.doc = "\tlist all VMs on the aws account";
 
-verbs['search'] = function(args) {
-  if (!args || args.length != 1) {
+verbs.search = function(args) {
+  if (!args || args.length !== 1) {
     throw 'missing required argument: search token'.error;
   }
 
@@ -620,10 +621,10 @@ verbs['search'] = function(args) {
     formatVMList(r);
   });
 };
-verbs['search'].doc = "search for VMs by ip, name, whatevs.";
+verbs.search.doc = "search for VMs by ip, name, whatevs.";
 
-verbs['update'] = function(args) {
-  if (!args || args.length != 1) {
+verbs.update = function(args) {
+  if (!args || args.length !== 1) {
     throw 'missing required argument: name of instance'.error;
   }
   var name = args[0];
@@ -650,18 +651,18 @@ verbs['update'] = function(args) {
     }
   });
 };
-verbs['update'].doc = "git push to an instance";
+verbs.update.doc = "git push to an instance";
 
-verbs['describe'] = function(name) {
+verbs.describe = function(name) {
   validateName(name);
   vm.describe(name, function(err, deets) {
     if (err) fail(err);
     console.log(JSON.stringify(deets, null, 2));
   });
 };
-verbs['describe'].doc = "get information about an instance (by instance id, or name)"
+verbs.describe.doc = "get information about an instance (by instance id, or name)";
 
-verbs['listkeys'] = function(name) {
+verbs.listkeys = function(name) {
   validateName(name);
   vm.describe(name, function(err, deets) {
     if (err) fail(err);
@@ -673,10 +674,10 @@ verbs['listkeys'] = function(name) {
     });
   });
 };
-verbs['listkeys'].doc = "list ssh keys on an instance: <instance name/id>"
+verbs.listkeys.doc = "list ssh keys on an instance: <instance name/id>";
 
-verbs['addkey'] = function(args) {
-  if (args.length != 2) {
+verbs.addkey = function(args) {
+  if (args.length !== 2) {
     throw 'Args required for addkey: instance_name, path_to_key_file'.error;
   }
 
@@ -691,14 +692,7 @@ verbs['addkey'] = function(args) {
         var keys = getKeyTexts(args[1]);
         var numKeys = keys.length;
 
-        // We don't want a whole bunch of asynchronous ssh processes adding
-        // and removing keys from the same file at the same time.  Ensure
-        // only one key is added at a time.
-        console.log("Adding the " + numKeys + " key" + (numKeys > 1 ? "s" : "") + " found in that file.");
-        var added = 0;
-        addNextKey();
-
-        function maybeAddAnotherKey() {
+        var maybeAddAnotherKey = function() {
           added += 1;
           if (added < numKeys) {
             addNextKey();
@@ -706,13 +700,22 @@ verbs['addkey'] = function(args) {
             console.log("done.".info);
             return;
           }
-        }
+        };
 
-        function addNextKey() {
+        var addNextKey = function() {
           var key = keys[added];
           console.log("\nAdding key: ".warn + key);
           ssh.addSSHPubKey(deets.ipAddress, key, maybeAddAnotherKey);
-        }
+        };
+
+        // We don't want a whole bunch of asynchronous ssh processes adding
+        // and removing keys from the same file at the same time.  Ensure
+        // only one key is added at a time.
+        console.log("Adding the " + numKeys + " key" + (numKeys > 1 ? "s" : "") + " found in that file.");
+        var added = 0;
+        addNextKey();
+
+
       } else if (rez.isDirectory()) {
         var nKeys = 0;
         key.addKeysFromDirectory(deets.ipAddress, args[1], function(msg) {
@@ -728,10 +731,10 @@ verbs['addkey'] = function(args) {
     });
   });
 };
-verbs['addkey'].doc = "add an ssh key to an instance: <instance> <file_or_dir>";
+verbs.addkey.doc = "add an ssh key to an instance: <instance> <file_or_dir>";
 
-verbs['removekey'] = function(args) {
-  if (args.length != 2) {
+verbs.removekey = function(args) {
+  if (args.length !== 2) {
     throw 'Args required for removekey: instance_name, path_to_key_file'.error;
   }
 
@@ -766,15 +769,15 @@ verbs['removekey'] = function(args) {
     }
   });
 };
-verbs['removekey'].doc = "remove a specific ssh key from an instance";
+verbs.removekey.doc = "remove a specific ssh key from an instance";
 
 if (process.argv.length <= 2) fail();
 
 var verb = process.argv[2].toLowerCase();
-if (!verbs[verb]) fail(verb != '-h' ? "no such command: " + verb : null);
+if (!verbs[verb]) fail(verb !== '-h' ? "no such command: " + verb : null);
 
 // check for required environment variables
-if (!process.env['AWS_ID'] || !process.env['AWS_SECRET']) {
+if (!process.env.AWS_ID || !process.env.AWS_SECRET) {
   fail('Missing aws credentials\nPlease configure the AWS_ID and AWS_SECRET environment variables.');
 }
 
