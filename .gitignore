@@ -2,7 +2,6 @@
 /code
 /code.old
 /config.json
-/var
 /ver.txt
 /.*
 !/.bashrc
