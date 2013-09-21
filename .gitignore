@@ -1,0 +1,13 @@
+/node_modules
+/code
+/code.old
+/config.json
+/var
+/ver.txt
+/.*
+!/.bashrc
+!/.gitignore
+/git
+/key.pem
+/cert.pem
+*~
