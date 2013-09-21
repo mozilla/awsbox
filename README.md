@@ -53,16 +53,20 @@ from the command line that is pre-configured to run your Node.JS service.
   * **magic ssh key config** - Your SSH key will be copied up and installed for you.
   * **git push support** - After you provision a vm, it's pre-configured so you can
     push to deploy
+  * **multi-region support** - awsbox base AMIs are published in every region AWS
+    supports, so you can deploy anywhere.
   * **command line or programmatic usage** - type at it, or script it.
   * **OS level user isolation** - all deployed code is run with user permissions under
     a single account.
-  * **HTTP forwarding with custom 503 page** - [http-proxy] is pre-configured to forward
+  * **HTTP forwarding with custom 503 page** - [nginx] is pre-configured to forward
     requests to your nodejs process bound to a local port.
   * **SSL support** - By default your process runs with a self-signed cert.  Enabling
     SSL support is as easy as copying up a private key and certificate in [PEM] format.
   * **WebSocket support** - AWSBOX fully supports WebSockets, via [socket.io] or otherwise.
+  * **Route53 support** - manage your DNS from the command line, and have DNS set up for
+    your boxes at creation time.
 
-  [http-proxy]: https://github.com/nodejitsu/node-http-proxy
+  [nginx]: https://nginx.org
   [PEM]: http://en.wikipedia.org/wiki/X.509
   [socket.io]: http://socket.io
 
