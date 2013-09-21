@@ -1,0 +1,5 @@
+server {
+    listen 80;
+    include /home/proxy/conf.d/server_name.inc;
+    return 301 https://$host$request_uri;
+}
