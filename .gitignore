@@ -6,7 +6,7 @@
 /ver.txt
 /.*
 !/.bashrc
-!/.gitignore
+!/.bash_profile
 !/.gitconfig
 /git
 /sauce.json
