@@ -1,3 +1,4 @@
+sudo rm -rf /tmp/*
 #!/bin/sh
 
 if [ $USER != "ec2-user" ]; then
@@ -29,7 +30,7 @@ sudo -u app rm -f /home/app/ver.txt
 
 # remove and recreate /home/app/var
 sudo -u app rm -rf /home/app/{code,code.old,var,tmp}
-GIT_DIR=/home/app/ sudo -u app -E git reset --hard HEAD
+sudo -u app -i git reset --hard HEAD
 
 # re-initialize SSL keys
 cd ~proxy
@@ -41,7 +42,7 @@ truncate -s 0 ~/.ssh/authorized_keys
 
 # clean out proxy logs
 sudo rm -rf home/proxy/var/log/*
-GIT_DIR=/home/proxy/ sudo -u proxy -E git reset --hard HEAD
+sudo -u proxy -i git reset --hard HEAD
 
 # remove command history
 sudo rm -f ~{app,ec2-user,proxy}/.bash_history
