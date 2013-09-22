@@ -581,7 +581,8 @@ verbs.createami = function(args) {
     // finally, clean up.
     vm.destroy(deets.instanceId, function(err) {
       checkErr(err);
-      console.log(" + source instance,", deets.instanceId, ",reaped");
+      console.log(" + source instance reaped (".data +
+                  deets.instanceId.info + ")".data);
     });
   });
 };
