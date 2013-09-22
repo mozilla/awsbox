@@ -5,7 +5,7 @@
 /ver.txt
 /.*
 !/.bashrc
-!/.gitignore
+!/.gitconfig
 /git
 /key.pem
 /cert.pem
