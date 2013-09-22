@@ -1,3 +1,10 @@
+0.6.0 -
+	* nginx now used for reverse proxying
+	* gzip support in nginx
+	* websocket support preserved
+	* removed iptable fowarding
+	* all user home directories moved to the main repo
+
 0.5.5 -
 	* multi-region support (set AWS_REGION env var)
 	* documentation improvements (thanks @vthunder!)
