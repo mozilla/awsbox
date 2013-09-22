@@ -1,0 +1,5 @@
+[user]
+	email = user@aws.box
+	name = Some Crazy AWSBOX User
+[color]
+	ui = true
