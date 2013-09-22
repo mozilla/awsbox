@@ -14,16 +14,11 @@ if [ `sudo -u app -i /usr/local/bin/node node_modules/.bin/forever list | grep '
     sudo -u app -i /usr/local/bin/node node_modules/.bin/forever stopall
 fi
 
-
 # remove /tmp crap
 sudo rm -rf /tmp/*
 
 # remove system logs
-sudo rm /var/log/*
-
-# remove and recreate /home/app/var
-sudo -u app rm -rf /home/app/{code,code.old,var,tmp}
-sudo -u app mkdir -p /home/app/var/log 
+sudo rm -f /var/log/*
 
 # reinitialize git
 sudo -u app rm -rf /home/app/git
@@ -31,6 +26,10 @@ sudo -u app mkdir /home/app/git
 GIT_DIR=/home/app/git sudo -u app -E git init --bare
 sudo -u app ln -s /home/app/post-update.js /home/app/git/hooks/post-update
 sudo -u app rm -f /home/app/ver.txt
+
+# remove and recreate /home/app/var
+sudo -u app rm -rf /home/app/{code,code.old,var,tmp}
+GIT_DIR=/home/app/ sudo -u app -E git reset --hard HEAD
 
 # re-initialize SSL keys
 cd ~proxy
@@ -42,6 +41,7 @@ truncate -s 0 ~/.ssh/authorized_keys
 
 # clean out proxy logs
 sudo rm -rf home/proxy/var/log/*
+GIT_DIR=/home/proxy/ sudo -u proxy -E git reset --hard HEAD
 
 # remove command history
 sudo rm -f ~{app,ec2-user,proxy}/.bash_history
