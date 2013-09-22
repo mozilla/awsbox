@@ -78,7 +78,7 @@ SSL credentials thusly:
 
     $ scp myprivatekey.pem proxy@[ip address]:key.pem
     $ scp mycert.pem proxy@[ip address]:cert.pem
-    $ ssh proxy@[ip address] 'forever restartall'
+    $ ssh ec2-user@[ip address] '/etc/init.d/nginx restart'
 
 Note that if you procure an SSL certificate from someone other than
 one of the root authorities (which in the ephemeral world of awsbox is
@@ -109,29 +109,28 @@ In the end, your `cert.pem` file should read like:
 At creation time you can pass `--ssl=disable` to create the instance with SSL
 disabled.
 
-Post creation, you can SSH in as the proxy user, and update config.json to contain:
+Post creation, you can SSH in as the proxy user, and remove the SSL nginx
+configuration in `~proxy/conf.d/https.conf`
 
-    { "ssl": "disable" }
-
-Then restart the proxy with `forever restartall`.
+Then restart the proxy.
 
 ## How Do I Force Connections to use SSL?
 
 You can always use HTTP headers (Strict-Transport-Security), but even then, a user's
 first request will not be encrypted.  To cause all HTTP traffic to be redirected
-to HTTPS, you can SSH in as the proxy user and update config.json to contain:
+to HTTPS, you can SSH in as the proxy user and re-configure nginx.
 
-    { "ssl": "force" }
+    mv conf.d/https_redirect.conf.disabled conf.d/https.conf
 
-Then restart the proxy with `forever restartall`.
+Then restart the proxy.
 
 ## How Do I Use WebSockets?
 
-Because we use [http-proxy] for HTTP forwarding, it should Just Work.  Have a look at the
+Because we use nginx > 1.3 for HTTP forwarding, it will Just Work.  Have a look at the
 [socket.io example] for a tiny focused example which uses WebSockets via the excellent
 socket.io library.
 
-  [http-proxy]: https://github.com/nodejitsu/node-http-proxy
+  [nginx]: http://nginx.com/news/nginx-websockets/
   [socket.io example]: https://github.com/lloyd/awsbox-socketio-example
 
 ## How Do I Install Software?

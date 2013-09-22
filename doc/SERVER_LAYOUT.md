@@ -35,18 +35,22 @@ creating custom template images.
 
 ## The 'proxy' user
 
-The 'proxy' user is whom a node.js http-proxy bound on ports 80 and 443
-is run that forwards requests to your locally bound nodejs application.
+The 'proxy' user is where nginx configuration and log files reside.  nginx
+is bound on ports 80 and 443 (depending on config) and forwards traffic
+to your application.
 
-You may scp/ssh in as the proxy user to modify SSL credentials and/or restart
-the proxy server using forever.  The following files are interesting:
+You may scp/ssh in as the proxy user to modify SSL credentials or nginx
+configuration.  The following files are interesting:
 
   * `key.pem` - PEM encoded SSL private key for the server
   * `cert.pem` - PEM encoded SSL certificate for the server.
   * `gen_self_signed.sh` - the script that generates the former two items
-  * `proxy_server.js` - The actual javascript code for the HTTP proxy
   * `config.json` - A tiny JSON config file which can change the SSL
     behavior of the proxy.
+
+## Restarting the proxy
+
+    ssh ec2-user@<ip> "sudo /etc/init.d/nginx restart"
 
 ## Installed/Running software
 
