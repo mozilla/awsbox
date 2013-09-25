@@ -1,3 +1,6 @@
+0.6.1 -
+	* fix bug in chronological sorting for search & list output
+
 0.6.0 -
 	* nginx now used for reverse proxying
 	* gzip support in nginx

@@ -594,7 +594,7 @@ function formatVMList(r) {
   var vmNames = Object.keys(r);
 
   vmNames.sort(function(a, b) {
-    return r[a].launchTime > r[b].launchTime;
+    return (r[a].launchTime > r[b].launchTime) ? 1 : -1;
   });
 
   vmNames.forEach(function(k) {
