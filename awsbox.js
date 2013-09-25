@@ -108,28 +108,27 @@ verbs.destroy = function(args) {
   }
   var name = args[0];
   validateName(name);
-  var hostname = name;
 
-  process.stdout.write("trying to destroy VM for ".warn + hostname + ": ");
+  process.stdout.write("trying to destroy VM for ".data + name.info + ": ".data);
   vm.destroy(name, function(err, deets) {
-    console.log(err ? ("failed: ".error + err) : "done");
+    console.log(err ? ("failed: ".error + err) : "done".info);
     if (deets && deets.ipAddress) {
-      process.stdout.write("trying to remove git remote: ".warn);
+      process.stdout.write("trying to remove git remote: ".data);
       git.removeRemote(name, deets.ipAddress, function(err) {
-        console.log(err ? "failed: ".error + err : "done");
+        console.log(err ? "failed: ".data + err.error : "done".info);
 
-        process.stdout.write("trying to remove DNS: ".warn);
+        process.stdout.write("trying to remove DNS: ".data);
         dns.findByIP(deets.ipAddress, function(err, fqdns) {
           checkErr(err);
-          if (!fqdns.length) return console.log("no dns entries found".info);
-          console.log(fqdns.join(', '));
+          if (!fqdns.length) return console.log("no dns entries found".warn);
+          console.log(fqdns.join(', ').info);
           function removeNext() {
             if (!fqdns.length) return;
             var fqdn = fqdns.shift();
-            process.stdout.write("deleting ".warn + fqdn + ": ");
+            process.stdout.write("deleting ".data + fqdn.info + ": ".data);
             dns.deleteRecord(fqdn, function(err) {
               checkErr(err);
-              console.log("done");
+              console.log("done".info);
               removeNext();
             });
           }
