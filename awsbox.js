@@ -670,7 +670,11 @@ verbs.update = function(args) {
 };
 verbs.update.doc = "git push to an instance";
 
-verbs.describe = function(name) {
+verbs.describe = function(args) {
+  if (!args || args.length !== 1) {
+    throw 'missing required argument: name of instance'.error;
+  }
+  var name = args[0];
   validateName(name);
   vm.describe(name, function(err, deets) {
     if (err) fail(err);
@@ -679,7 +683,11 @@ verbs.describe = function(name) {
 };
 verbs.describe.doc = "get information about an instance (by instance id, or name)";
 
-verbs.listkeys = function(name) {
+verbs.listkeys = function(args) {
+  if (!args || args.length !== 1) {
+    throw 'missing required argument: name of instance'.error;
+  }
+  var name = args[0];
   validateName(name);
   vm.describe(name, function(err, deets) {
     if (err) fail(err);
