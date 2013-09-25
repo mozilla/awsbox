@@ -217,6 +217,19 @@ verbs.zones = function(/* args */) {
 };
 verbs.zones.doc = "list Amazon regions and availability zones";
 
+verbs.regions = function(/* args */) {
+  aws.zones(function(err, r) {
+    if (err) {
+      console.log("ERROR:", err);
+      process.exit(1);
+    }
+    Object.keys(r).forEach(function(region) {
+      console.log(" *", region.info);
+    });
+  });
+};
+verbs.regions.doc = "list Amazon regions";
+
 verbs.updaterecord = function(args) {
   var hostname = args[0];
   var ipAddress = args[1];
