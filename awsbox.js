@@ -477,7 +477,7 @@ verbs.create = function(args) {
     });
   });
 };
-verbs.create.doc = "create an EC2 instance, -h for help".info;
+verbs.create.doc = "create an EC2 instance, -h for help";
 
 verbs.createami = function(args) {
   // "createami" takes a target instance, cleans it up, and generates
