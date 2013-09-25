@@ -1,5 +1,8 @@
 0.6.1 -
 	* fix bug in chronological sorting for search & list output
+	* add 'regions' command to quickly list aws regions
+	* finding instance by short instance name succeeds more often
+	* improved console output
 
 0.6.0 -
 	* nginx now used for reverse proxying
