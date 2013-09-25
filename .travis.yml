@@ -4,6 +4,11 @@ node_js:
  - "0.10"
 
 notifications:
+  irc:
+    channels:
+      - "irc.mozilla.org#identity"
+    use_notice: false
+    skip_join: false
   email:
     - lloyd@mozilla.com
     - chilts@mozilla.com
