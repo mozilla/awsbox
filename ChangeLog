@@ -1,3 +1,10 @@
+0.6.2 -
+	* `create` command by default expects AWS_EMAIL to be defined
+	* upon instance creation an `email` tag will be added to the instance
+	* `claim` lets you tag an instance with your email
+	* `unclaimed` lets you list unclaimed instances.
+	* new instances tagged with `awsbox` key, and value is awsbox ver.
+
 0.6.1 -
 	* fix bug in chronological sorting for search & list output
 	* add 'regions' command to quickly list aws regions
