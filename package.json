@@ -25,7 +25,8 @@
     "relative-date": "1.1.1",
     "colors": "~0.6.0-1",
     "awssum": "1.1.0",
-    "awssum-amazon": "1.1.0"
+    "awssum-amazon": "1.1.0",
+    "read-package-json": "~1.1.3"
   },
   "devDependencies": {
     "should": "~1.3.0",

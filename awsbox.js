@@ -20,7 +20,12 @@ fs = require('fs'),
 relativeDate = require('relative-date'),
 async = require('async'),
 existsSync = fs.existsSync || path.existsSync, // existsSync moved path to fs in 0.7.x
-jsel = require('JSONSelect');
+jsel = require('JSONSelect'),
+readJson = require('read-package-json');
+
+// populated by reading json file before commands are exectued, used
+// to tag newly created instances, to help with instance management.
+var awsboxVersion;
 
 // allow multiple different env vars (for the canonical AWS_ID and AWS_SECRET)
 [ 'AWS_KEY', 'AWS_ID', 'AWS_ACCESS_KEY' ].forEach(function(x) {
@@ -101,6 +106,11 @@ function copySSLCertIfAvailable(opts, deets, cb) {
     cb && cb(null, null);
   }
 }
+
+verbs.version = function() {
+  console.log("AWSBOX v" + awsboxVersion.info);
+};
+verbs.version.doc = "report awsbox version";
 
 verbs.destroy = function(args) {
   if (!args || args.length !== 1) {
@@ -441,7 +451,8 @@ verbs.create = function(args) {
 
           // set some tags at creation (VM name included)
           var tagSet = {
-            Name: longName
+            Name: longName,
+            awsbox: awsboxVersion
           };
           if (dnsHost) tagSet.InitialDNS = dnsHost;
           if (email) tagSet.email = email;
@@ -854,12 +865,18 @@ if (!process.env.AWS_ID || !process.env.AWS_SECRET) {
 console.log("(using region", config.region + ")");
 aws.createClients(config.region);
 
-// now call the command
-try {
-  verbs[verb](process.argv.slice(3));
-} catch(e) {
-  fail("error running '".error + verb + "' command: ".error + e);
-}
+// determine awsbox version
+readJson(path.join(__dirname, "package.json"), function(err, data) {
+  checkErr(err);
+  awsboxVersion = data.version || "unknown";
+
+  // invoke command
+  try {
+    verbs[verb](process.argv.slice(3));
+  } catch(e) {
+    fail("error running '".error + verb + "' command: ".error + e);
+  }
+});
 
 function fail(error) {
   if (error && typeof error.message === 'function') error = error.message();
