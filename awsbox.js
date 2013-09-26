@@ -19,8 +19,8 @@ util = require('util'),
 fs = require('fs'),
 relativeDate = require('relative-date'),
 async = require('async'),
-existsSync = fs.existsSync || path.existsSync; // existsSync moved path to fs in 0.7.x
-
+existsSync = fs.existsSync || path.existsSync, // existsSync moved path to fs in 0.7.x
+jsel = require('JSONSelect');
 
 // allow multiple different env vars (for the canonical AWS_ID and AWS_SECRET)
 [ 'AWS_KEY', 'AWS_ID', 'AWS_ACCESS_KEY' ].forEach(function(x) {
@@ -287,6 +287,40 @@ verbs.deleterecord = function(args) {
 };
 verbs.deleterecord.doc = "delete a resource record. e.g. sub.example.com (this does not delete zones)";
 
+verbs.claim = function(args) {
+  var email = (args.length === 2 ? args[1] : process.env.AWS_EMAIL);
+  if (!email) {
+    throw 'email not provided in argument nor in environment (AWS_EMAIL)'.error;
+  }
+  if (args.length < 1) {
+    throw "missing instance argument";
+  }
+  var name = args[0];
+
+  vm.find(name, function(err, r) {
+    checkErr(err);
+
+    vm.setTags(r.instanceId, { email: email }, function(err) {
+      checkErr(err);
+      console.log("instance".data, r.instanceId.info, "tagged with".data, email.info);
+    });
+  });
+};
+verbs.claim.doc = "add an 'email' tag to an instance (email as argument or AWS_EMAIL): <instance> [email]";
+
+verbs.unclaimed = function() {
+  vm.list(function(err, r) {
+    checkErr(err);
+
+    // remove all vms from the list with an email tag
+    jsel.match(":root > object:has(.tags > .email) > .name", r).forEach(function(k) {
+      delete r[k];
+    });
+    formatVMList(r);
+  });
+};
+verbs.unclaimed.doc = "list all instances that are unclaimed, have no 'email' tag";
+
 verbs.create = function(args) {
   var parser = optimist(args)
     .usage('awsbox create: Create a VM')
@@ -302,6 +336,8 @@ verbs.create = function(args) {
     .describe('remote', 'add a git remote')
     .boolean('remote')
     .default('remote', true)
+    .describe('noemail', 'don\'t add an email tag to the vm.')
+    .string('noemail')
     .check(function(argv) {
       // parse/normalized typed in URL arguments
       if (argv.u) argv.u = urlparse(argv.u).validate().originOnly().toString();
@@ -364,6 +400,14 @@ verbs.create = function(args) {
     }
   }
 
+  var email;
+  if (!opts.noemail) {
+    email = process.env.AWS_EMAIL;
+    if (!email) {
+      throw 'refusing to create without creator\'s email.  Define AWS_EMAIL, or use --noemail';
+    }
+  }
+
   // for a simplified code flow, we'll always check if the dns address is in use.
   // we ignore an error if -d (setup dns) is not specified)
   dns.inUse(dnsHost, function(err, res) {
@@ -400,6 +444,7 @@ verbs.create = function(args) {
             Name: longName
           };
           if (dnsHost) tagSet.InitialDNS = dnsHost;
+          if (email) tagSet.email = email;
 
           vm.setTags(r.instanceId, tagSet, function(err) {
             checkErr(err);
