@@ -1,3 +1,11 @@
+0.6.3 -
+	* MPL license added
+	* document how to hack base images
+	* fix failure of first deploy in AWS with awsbox (initial sec group creation)
+	* `protect` and `unprotect` allow command line toggle of termination protection
+	* node.js 0.10.24
+	* security updates
+
 0.6.2 -
 	* `create` command by default expects AWS_EMAIL to be defined
 	* upon instance creation an `email` tag will be added to the instance
