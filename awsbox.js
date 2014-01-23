@@ -227,6 +227,35 @@ verbs.zones = function(/* args */) {
 };
 verbs.zones.doc = "list Amazon regions and availability zones";
 
+verbs.protect = function(args) {
+  var name = args[0];
+
+  vm.find(name, function(err, r) {
+    checkErr(err);
+
+    vm.protect(r.instanceId, function(err, resp) {
+      console.log("enable termination protection on".data, r.instanceId.info + ": ",
+                  err ? "failed: ".error + err.error : resp.response.info);
+    });
+  });
+};
+verbs.protect.doc = "enable termination protection on an instance";
+
+verbs.unprotect = function(args) {
+  var name = args[0];
+
+  vm.find(name, function(err, r) {
+    checkErr(err);
+
+    vm.unprotect(r.instanceId, function(err, resp) {
+      console.log("disable".error, "termination protection on".data,
+                  r.instanceId.info + ": ".data,
+                  err ? "failed: ".error + err.error : resp.response.info);
+    });
+  });
+};
+verbs.unprotect.doc = "disable termination protection on an instance";
+
 verbs.regions = function(/* args */) {
   aws.zones(function(err, r) {
     if (err) {
