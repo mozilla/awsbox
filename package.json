@@ -37,6 +37,7 @@
   "scripts": {
     "test": "mocha -R spec tests/"
   },
+  "license": "MPL 2.0",
   "bin": {
     "awsbox": "./awsbox.js"
   }
