@@ -106,31 +106,47 @@ temp.mkdir('deploy', function(err, newCodeDir) {
     commands.push([ 'move new code into place', 'mv ' + newCodeDir + ' ' + codeDir ]);
 
     runNextCommand(function() {
-      updateEnv();
+      updateEnvAwsBox();
     });
   }
 
-  function updateEnv() {
-    // now update the environment with what's in the config file
-    if (awsboxJson.env) {
-      var eKeys = Object.keys(awsboxJson.env);
+  function updateEnv(env, next) {
+    var eKeys = Object.keys(env);
+    console.log("Env vars:", eKeys.join(", "));
 
-      console.log(">> setting env vars from .awsbox.json:", eKeys.join(", "));
-
-      function setNext() {
-        if (!eKeys.length) postDeploy();
-        else {
-          var k = eKeys.shift();
-          child_process.exec(
-            'echo "' + awsboxJson.env[k] + '"',
-            function(error, so, se) {
-              checkErr('while setting ENV var ' + k, error);
-              process.env[k] = so.toString().trim();
-              setNext();
-            });
-        }
+    function setNext() {
+      if (!eKeys.length) next();
+      else {
+        var k = eKeys.shift();
+        child_process.exec(
+          'echo "' + env[k] + '"',
+          function(error, so, se) {
+            checkErr('while setting ENV var ' + k, error);
+            process.env[k] = so.toString().trim();
+            setNext();
+          });
       }
-      setNext()
+    }
+    setNext();
+  }
+
+  function updateEnvAwsBox() {
+    // now update the environment with what's in the config files
+    if (awsboxJson.env) {
+      console.log(">> setting env vars from .awsbox.json...");
+
+      updateEnv(awsboxJson.env, updateEnvAppConfig);
+    } else {
+      updateEnvAppConfig();
+    }
+  }
+
+  function updateEnvAppConfig() {
+    // now update the environment with what's in the config files
+    if (appconfig.env) {
+      console.log(">> setting env vars from config.json...");
+
+      updateEnv(appconfig.env, postDeploy);
     } else {
       postDeploy();
     }
