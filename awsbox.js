@@ -366,7 +366,7 @@ verbs.create = function(args) {
         if (!existsSync(argv.p)) throw "file '" + argv.p + "' doesn't exist";
       }
     })
-    .describe('ssl', 'configure SSL behavior - enable, disable, force')
+    .describe('ssl', 'configure SSL behavior - enable, disable, force, redirect')
     .default('ssl', 'enable')
     .check(function(argv) {
       var valid = [ 'enable', 'disable', 'force', 'redirect' ];
