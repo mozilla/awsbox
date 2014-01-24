@@ -1,9 +1,9 @@
 {
-  "eu-west-1": "ami-9e4da9e9",
-  "us-east-1": "ami-b1a1ebd8",
-  "us-west-2": "ami-bc64fb8c",
-  "us-west-1": "ami-5a9bae1f",
-  "sa-east-1": "ami-e99f38f4",
-  "ap-northeast-1": "ami-6fba256e",
-  "ap-southeast-1": "ami-2ce8a37e"
+  "eu-west-1": "ami-1a67936d",
+  "us-east-1": "ami-419ea328",
+  "us-west-2": "ami-2a12721a",
+  "us-west-1": "ami-ccc7f589",
+  "ap-southeast-1": "ami-8c3264de",
+  "sa-east-1": "ami-c56cccd8",
+  "ap-northeast-1": "ami-0ffe970e"
 }
