@@ -63,7 +63,7 @@ Where `<name>` is either the AWS instance id or your name for it.
 
 ## How Do I List the People Who Have Access to the VM?
 
-Look in the `~ec2-user/.ssh/authorized_keys` file, or simply run: 
+Look in the `~ec2-user/.ssh/authorized_keys` file, or simply run:
 
 ```shell
 awsbox listkeys <name>
@@ -78,7 +78,7 @@ SSL credentials thusly:
 
     $ scp myprivatekey.pem proxy@[ip address]:key.pem
     $ scp mycert.pem proxy@[ip address]:cert.pem
-    $ ssh ec2-user@[ip address] '/etc/init.d/nginx restart'
+    $ ssh ec2-user@[ip address] 'sudo /etc/init.d/nginx restart'
 
 Note that if you procure an SSL certificate from someone other than
 one of the root authorities (which in the ephemeral world of awsbox is
