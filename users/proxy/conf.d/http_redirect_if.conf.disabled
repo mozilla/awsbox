@@ -1,0 +1,8 @@
+server {
+    listen 80;
+    if ($http_x_forwarded_proto != 'https') {
+      return 301 https://$host$request_uri;
+    }
+    include /home/proxy/conf.d/server_name.inc;
+    include /home/proxy/conf.d/common.inc;
+}
