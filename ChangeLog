@@ -1,3 +1,6 @@
+0.6.4 -
+	* allow env vars to be supplied in instance specific config.json (thanks @Standard8)
+
 0.6.3 -
 	* MPL license added
 	* document how to hack base images
