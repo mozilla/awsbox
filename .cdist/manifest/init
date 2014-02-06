@@ -1,0 +1,22 @@
+# A nice motd for awsbox
+__motd --source "$__manifest/motd"
+
+# update all packages
+__update_packages
+
+# install packages we need
+__package nginx
+__package git
+
+# install node.js
+__nodejs_from_source --node_ver 0.10.25
+
+# drop a file to let the world know that cdist has been configured
+__file /etc/cdist-configured
+
+# create a proxy user
+__user proxy
+__user app
+
+
+

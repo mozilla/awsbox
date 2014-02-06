@@ -1,0 +1,4 @@
+# we need gcc and make to build node.js
+__package gcc
+__package gcc-c++
+__package make

@@ -1,0 +1,2 @@
+# update all packages (assume yum)
+echo "yum update -y -q"

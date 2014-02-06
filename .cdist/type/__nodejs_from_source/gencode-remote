@@ -1,0 +1,11 @@
+# update all packages (assume yum)
+NODE_VERSION="$(cat "$__object/parameter/node_ver")"
+
+echo "wget -q http://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION.tar.gz"
+echo "tar xzf node-v$NODE_VERSION.tar.gz"
+echo "cd node-v$NODE_VERSION"
+echo "./configure >> $__messages_out"
+echo "make >> $__messages_out"
+echo "make install" # >> $__messages_out"
+echo "cd .."
+echo "rm -rf node-v$NODE_VERSION*"
