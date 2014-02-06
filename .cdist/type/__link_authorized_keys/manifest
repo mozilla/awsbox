@@ -1,0 +1,16 @@
+dotssh=/home/$__object_id/.ssh
+
+__directory $dotssh --owner $__object_id --group $__object_id --mode 0700
+
+__link $dotssh/authorized_keys  \
+  --source /home/ec2-user/.ssh/authorized_keys  \
+  --type symbolic
+
+# enable
+__directory /home/ec2-user --mode 0755
+
+# enable access to files underneath .ssh
+__directory /home/ec2-user/.ssh --mode 0711
+
+# enable read access specifically to authorized_keys
+__file /home/ec2-user/.ssh/authorized_keys --state exists --mode 0644
