@@ -1,0 +1,8 @@
+owner="root"
+[ -f "$__object/parameter/owner" ] && owner="$(cat "$__object/parameter/owner")"
+group="root"
+[ -f "$__object/parameter/group" ] && group="$(cat "$__object/parameter/group")"
+
+echo "cd /$__object_id"
+echo "git init --quiet ."
+echo "chown -R $owner:$group /$__object_id"
