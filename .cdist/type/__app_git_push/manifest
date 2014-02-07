@@ -13,4 +13,8 @@ require="__git_init/home/app/git"        \
 __file /home/app/ver.txt --source "$__type/files/ver.txt" \
   --state present --owner=app --group=app --mode=0644
 
+# and setup rc.local to always start the app on reboot
+__file /etc/rc.d/rc.local --source "$__type/files/rc.local" \
+  --state present --owner=root --group=root --mode=0755
+
 # and finally, we'll npm update inside /home/app (happens in gencode-remote)
