@@ -3,6 +3,12 @@ __package nginx
 
 # once installed, copy in our config file
 require="__package/nginx" \
-  __file /etc/nginx.conf --source "$__type/files/nginx.conf" --state present
+  __file /etc/nginx/nginx.conf --source "$__type/files/nginx.conf" --state present
 
-# finally, restart the server - which will happen in gencode-remote
+# Ensure nginx is started at boot
+require="__package/nginx" \
+  __start_on_boot nginx
+
+# and restart it once new config is in place
+require="__file/etc/nginx/nginx.conf" \
+  __process /usr/sbin/nginx --state present --start "/etc/init.d/nginx start"
