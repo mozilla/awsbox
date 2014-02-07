@@ -1,6 +1,9 @@
 # a nice motd for awsbox
 __motd --source "$__manifest/motd"
 
+# tune the server to make it awesomer.
+__tune_server
+
 # NOTE: we're relying on yum itself to block for parallel package
 #       manipulation requests.
 
