@@ -9,4 +9,4 @@ mode="0700"
 __package git --state present
 
 # and we need the directory to exist
-__directory $__object_id --owner=$owner --group=$group
+__directory $__object_id --owner=$owner --group=$group --mode=$mode
