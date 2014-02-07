@@ -2,17 +2,10 @@ owner="root"
 [ -f "$__object/parameter/owner" ] && owner="$(cat "$__object/parameter/owner")"
 group="root"
 [ -f "$__object/parameter/group" ] && group="$(cat "$__object/parameter/group")"
+bare=""
+[ -f "$__object/parameter/bare" ] && bare="--bare"
 
 echo "cd /$__object_id"
-echo "git init --quiet ."
-
-# this doesn't really belong here, it will allow us to
-# push directly into the branch
-cat <<EOF
-  cat <<denyignore >> .git/config
-[receive]
-        denyCurrentBranch = ignore
-denyignore
-EOF
+echo "git init --quiet $bare ."
 
 echo "chown -R $owner:$group /$__object_id"
