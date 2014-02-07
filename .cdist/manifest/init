@@ -1,5 +1,5 @@
 # a nice motd for awsbox
-__motd --source "$__type/files/motd"
+__motd --source "$__manifest/motd"
 
 # update all packages
 __update_packages
