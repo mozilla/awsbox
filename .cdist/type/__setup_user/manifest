@@ -1,0 +1,27 @@
+# Set up a user account on the awsbox image.
+user=$__object_id
+homedir=/home/$user
+
+# Create the user account
+__user $user
+
+# Link the user's ssh authorized key file to ec2-user's so that
+# there's only one key on the box
+require="__user/$user" \
+  __link_authorized_keys $user
+
+# Now let's git push the appropriate subtree of the awsbox repository
+# to create the initial files in the user's account
+require="__link_authorized_keys/$user" \
+  __git_init $homedir --owner=$user --group=$user
+
+# allow users to log in with symlinks
+__ssh_no_strict
+
+# subtree push, requires ssh access for that user
+require="__git_init/$homedir __ssh_no_strict" \
+  __git_subtree_push users/$user --remote=$user@$__target_host:.
+
+# now git checkout as the user
+require="__git_subtree_push/users/$user" \
+  __git_checkout $homedir --user=$user

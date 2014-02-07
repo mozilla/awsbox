@@ -1,1 +1,4 @@
 __package openssh --state present
+
+require="__package/openssh" \
+  __key_value StrictModes --file /etc/ssh/sshd_config --delimiter ' ' --value no

@@ -1,0 +1,6 @@
+user="root"
+[ -f "$__object/parameter/user" ] && user="$(cat "$__object/parameter/user")"
+
+echo "cd /$__object_id"
+echo "git checkout -f"
+echo "chown -R $user:$user /$__object_id"

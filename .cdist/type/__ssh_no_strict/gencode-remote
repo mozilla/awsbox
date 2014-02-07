@@ -1,2 +1,1 @@
-echo 'echo "StrictModes no" >> /etc/ssh/sshd_config'
 echo 'kill -HUP `cat /var/run/sshd.pid`'

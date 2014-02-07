@@ -5,4 +5,14 @@ group="root"
 
 echo "cd /$__object_id"
 echo "git init --quiet ."
+
+# this doesn't really belong here, it will allow us to
+# push directly into the branch
+cat <<EOF
+  cat <<denyignore >> .git/config
+[receive]
+        denyCurrentBranch = ignore
+denyignore
+EOF
+
 echo "chown -R $owner:$group /$__object_id"
