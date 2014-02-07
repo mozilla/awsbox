@@ -1,12 +1,15 @@
 # a nice motd for awsbox
 __motd --source "$__manifest/motd"
 
+# NOTE: we're relying on yum itself to block for parallel package
+#       manipulation requests.
+
 # update all packages
 __update_packages
 
-# install packages we need
-require="__update_packages" \
-  __package nginx
+# install packages we want and need
+__package nginx
+__package htop
 
 # install node.js
 __nodejs_from_source --node_ver 0.10.25
@@ -17,3 +20,7 @@ __file /etc/cdist-configured
 # create users
 __setup_user app
 __setup_user proxy
+
+# setup nginx
+require="__update_packages __setup_user/proxy" \
+  __setup_nginx

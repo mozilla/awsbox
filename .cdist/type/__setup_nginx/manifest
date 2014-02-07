@@ -1,0 +1,8 @@
+# install the thing
+__package nginx
+
+# once installed, copy in our config file
+require="__package/nginx" \
+  __file /etc/nginx.conf --source "$__type/files/nginx.conf" --state present
+
+# finally, restart the server - which will happen in gencode-remote

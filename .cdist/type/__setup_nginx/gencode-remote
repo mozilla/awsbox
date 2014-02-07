@@ -1,0 +1,1 @@
+echo "killall -HUP nginx"
