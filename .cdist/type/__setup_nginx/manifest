@@ -1,6 +1,9 @@
 # install the thing
 __package nginx
 
+# create self signed certificates
+__self_signed_certs
+
 # once installed, copy in our config file
 require="__package/nginx" \
   __file /etc/nginx/nginx.conf --source "$__type/files/nginx.conf" --state present
@@ -10,5 +13,5 @@ require="__package/nginx" \
   __start_on_boot nginx
 
 # and restart it once new config is in place
-require="__file/etc/nginx/nginx.conf" \
+require="__file/etc/nginx/nginx.conf __self_signed_certs" \
   __process /usr/sbin/nginx --state present --start "/etc/init.d/nginx start"

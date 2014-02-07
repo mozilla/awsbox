@@ -6,10 +6,10 @@
     # server awbox page
     error_page 502 /500/;
     location /500/ {
-      root /home/app/;
+      root /home/proxy/;
     }
     location /awsbox_background.jpg {
-      root /home/app/500;
+      root /home/proxy/500;
     }
 
     # router
