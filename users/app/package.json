@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "dependencies": {
     "forever": "0.10.11",
-    "temp": "0.6.0"
+    "temp": "0.6.0",
+    "request": "2.33.0"
   }
 }
