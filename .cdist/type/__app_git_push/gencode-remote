@@ -1,1 +1,3 @@
-echo "su -l -c \"npm install\" app > $__messages_out 2>&1"
+FOREVER_VERSION=0.10.11
+
+echo "su -l -c \"npm install forever@$FOREVER_VERSION\" app > $__messages_out 2>&1"
