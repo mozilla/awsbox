@@ -1,0 +1,1 @@
+echo "su -l -c \"npm install\" app > $__messages_out 2>&1"
