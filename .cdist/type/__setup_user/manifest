@@ -2,8 +2,13 @@
 user=$__object_id
 homedir=/home/$user
 
+mode="0700"
+[ -f "$__object/parameter/mode" ] && mode="$(cat "$__object/parameter/mode")"
+
 # Create the user account
 __user $user
+
+require="__user/$user" \
 
 # Link the user's ssh authorized key file to ec2-user's so that
 # there's only one key on the box
@@ -13,13 +18,18 @@ require="__user/$user" \
 # Now let's git push the appropriate subtree of the awsbox repository
 # to create the initial files in the user's account
 require="__link_authorized_keys/$user" \
-  __git_init $homedir --owner=$user --group=$user
+  __git_init $homedir --owner=$user --group=$user --mode=$mode
 
 # allow users to log in with symlinks
 __ssh_no_strict
 
+# allow us to directly push to the user ignoring the currently
+# checkout branch
+require="__git_init/$homedir" \
+  __git_allow_push_to_current $homedir/.git
+
 # subtree push, requires ssh access for that user
-require="__git_init/$homedir __ssh_no_strict" \
+require="__git_allow_push_to_current/$homedir/.git __ssh_no_strict" \
   __git_subtree_push users/$user --remote=$user@$__target_host:.
 
 # now git checkout as the user
