@@ -15,3 +15,8 @@ require="__package/nginx" \
 # and restart it once new config is in place
 require="__file/etc/nginx/nginx.conf __self_signed_certs" \
   __process /usr/sbin/nginx --state present --start "/etc/init.d/nginx start"
+
+# point nginx at the correct pidfile
+require="__package/nginx" \
+  __key_value pidfile --value "/home/proxy/var/run/nginx.pid" \
+    --delimiter '=' --file /etc/sysconfig/nginx
