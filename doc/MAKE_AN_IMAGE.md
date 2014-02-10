@@ -43,6 +43,19 @@ you can put this wherever you want, simple is good, try this:
 
     curl https://codeload.github.com/telmich/cdist/tar.gz/3.0.7 | tar xz
 
+### PRO TIP: make ssh faster
+
+Our friends at cdist [suggest a way][] to make sequential ssh sessions much faster:
+
+  [suggest a way]: http://www.nico.schottelius.org/software/cdist/man/latest/man7/cdist-best-practice.html#_speeding_up_ssh_connections
+
+Just put this in your `~/.ssh/config`:
+
+    Host *
+         ControlPath ~/.ssh/master-%l-%r@%h:%p
+         ControlMaster auto
+         ControlPersist 10
+
 ### 3. provision your server
 
 Using cdist, you can now provision the server you created in #2:
@@ -64,3 +77,4 @@ A successful result will be a local modification to defaultImages.
 Final step, test to see that this works as you want.  You can npm install your
 modified awsbox into one of your projects, or you can just try creating a new
 vm.  When satisfied, commit!  Now you've got a commit that uses new base amis.
+
