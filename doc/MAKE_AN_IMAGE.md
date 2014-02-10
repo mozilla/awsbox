@@ -58,7 +58,7 @@ Just put this in your `~/.ssh/config`:
 
 ### 3. provision your server
 
-Using cdist, you can now provision the server you created in #2:
+Using cdist, you can now provision the server you created in #1 above:
 
     cdist-3.0.7/bin/cdist config -v -c .cdist <server ip>
 
