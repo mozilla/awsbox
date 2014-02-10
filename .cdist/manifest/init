@@ -4,15 +4,16 @@ __motd --source "$__manifest/motd"
 # tune the server to make it awesomer.
 __tune_server
 
-# NOTE: we're relying on yum itself to block for parallel package
-#       manipulation requests.
+# enable extra packages form the epel
+__ini /etc/yum.repos.d/epel.repo --section=epel --key=enabled --value=1
 
 # update all packages
-__update_packages
+require="__ini/etc/yum.repos.d/epel.repo" \
+  __update_packages
 
 # install packages we want and need
-__package nginx
-__package htop
+require="__update_packages" __package nginx
+require="__update_packages" __package htop
 
 # install node.js
 __nodejs_from_source --node_ver 0.10.25
