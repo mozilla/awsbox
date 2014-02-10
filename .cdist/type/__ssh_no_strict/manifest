@@ -1,0 +1,7 @@
+__package openssh --state present
+
+require="__package/openssh" \
+  __key_value StrictModes --file /etc/ssh/sshd_config --delimiter ' ' --value no
+
+# allow sudo to be run over SSH
+__key_value Defaults --file /etc/sudoers --delimiter ' ' --value requiretty --state absent

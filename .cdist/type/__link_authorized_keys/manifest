@@ -1,0 +1,15 @@
+dotssh=/home/$__object_id/.ssh
+
+# create a .ssh directory and inside of it a symlink over to
+# the ec2-user's authorized keys
+__directory $dotssh --owner $__object_id --group $__object_id --mode 0700
+
+require="__directory/$dotssh" \
+  __link $dotssh/authorized_keys  \
+  --source /home/ec2-user/.ssh/authorized_keys  \
+  --type symbolic
+
+# enable other users to read the ec2-user's authorized_key file
+__directory /home/ec2-user --mode 0711
+__directory /home/ec2-user/.ssh --mode 0711
+__file /home/ec2-user/.ssh/authorized_keys --state exists --mode 0644

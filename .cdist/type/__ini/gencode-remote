@@ -1,0 +1,94 @@
+#!/bin/sh
+#
+# 2014 Lloyd Hilaiel (me at lloyd.io)
+#
+# This file is part of cdist.
+#
+# cdist is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# cdist is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with cdist. If not, see <http://www.gnu.org/licenses/>.
+#
+
+# required arguments
+file="/$__object_id"
+section="$(cat $__object/parameter/section)"
+key="$(cat $__object/parameter/key)"
+value="$(cat $__object/parameter/value)"
+
+# optional parameters
+state="present"
+[ -f "$__object/parameter/state" ] && state="$(cat "$__object/parameter/state")"
+delimiter='='
+[ -f "$__object/parameter/delimiter" ] && delimiter="$(cat "$__object/parameter/delimiter")"
+
+cat <<EOF
+# line number of the desired section
+foundsection=""
+# whether we are currently parsing through the desired section
+insection=0
+# line number of the found variable
+foundkey=""
+
+contents=\$(cat -n $file)
+
+IFS='
+'
+for line in \$contents; do
+  if [ "x\$(echo \$line | egrep "\[.*\]")" != "x" ]; then
+      # this is a section marker
+
+      if [ "x\$(echo \$line | fgrep "[$section]")" != "x" ]; then
+          foundsection=\$(echo \$line | sed -e 's/^ *\([0-9]*\).*$/\1/')
+          insection=1
+      else
+          insection=0
+      fi
+  fi
+
+  if [ "\$insection" = "1" ]; then
+      if [ "x\$(echo \$line | egrep "^\s*[0-9]*\s*$key")" != "x" ]; then
+          foundkey=\$(echo \$line | sed -e 's/^ *\([0-9]*\).*$/\1/')
+      fi
+  fi
+done
+
+replaceline () {
+  file=\$1
+  from=\$2
+  to=\$3
+  newline=\$4
+  bakfile="$file".bak
+
+  mv $file \$bakfile
+  head -\$from \$bakfile > $file
+  [ "x\$newline" != "x" ] && echo \$newline >> $file
+  tail -n+\$(expr \$to + 1) \$bakfile >> $file
+  # FIXME: is it ok to leave a .bak file here?
+}
+
+if [ "$state" = "present" ]; then
+    newline=$key$delimiter$value
+
+    # if we want the variable to exist, and it does, we replace it
+    if [ "x\$foundkey" != "x" ]; then
+        replaceline $file \$(expr \$foundkey - 1) \$foundkey \$newline
+    else
+        replaceline $file \$foundsection \$foundsection \$newline
+    fi
+else
+echo "state absent" k \$foundkey s \$foundsection
+  # if we want the variable not to exist, and it does, we delete it
+    if [ "x\$foundkey" != "x" ]; then
+        replaceline $file \$(expr \$foundkey - 1) \$foundkey
+    fi
+fi
+EOF

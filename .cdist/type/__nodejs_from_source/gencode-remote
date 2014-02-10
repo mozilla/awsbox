@@ -1,0 +1,17 @@
+NODE_VERSION="v$(cat "$__object/parameter/node_ver")"
+INSTALLED_VERSION="$(cat "$__object/explorer/node_ver")"
+NUM_CPUS="$(cat "$__object/explorer/num_cpus")"
+
+# run 1 more than avail CPUs to ensure saturation
+let NUM_CPUS=$NUM_CPUS+1
+
+if [ "$NODE_VERSION" != "$INSTALLED_VERSION" ] ; then
+  echo "wget -q http://nodejs.org/dist/$NODE_VERSION/node-$NODE_VERSION.tar.gz"
+  echo "tar xzf node-$NODE_VERSION.tar.gz"
+  echo "cd node-$NODE_VERSION"
+  echo "./configure >> $__messages_out"
+  echo "make -j$NUM_CPUS >> $__messages_out 2>&1"
+  echo "make install >> $__messages_out"
+  echo "cd .."
+  echo "rm -rf node-$NODE_VERSION*"
+fi

@@ -1,0 +1,20 @@
+# Set up the git push endpoint for server update at app@<host>:git
+
+# initialize the git repo where deployment occurs
+__git_init /home/app/git --owner=app --group=app --bare
+
+# create a symlink inside the git repo to the post_update.js hook
+require="__git_init/home/app/git"        \
+  __link /home/app/git/hooks/post-update \
+  --source /home/app/post-update.js      \
+  --type symbolic
+
+# create an initial ver.txt
+__file /home/app/ver.txt --source "$__type/files/ver.txt" \
+  --state present --owner=app --group=app --mode=0644
+
+# and setup rc.local to always start the app on reboot
+__file /etc/rc.d/rc.local --source "$__type/files/rc.local" \
+  --state present --owner=root --group=root --mode=0755
+
+# and finally, we'll npm update inside /home/app (happens in gencode-remote)

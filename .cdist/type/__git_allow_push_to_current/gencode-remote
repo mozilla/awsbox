@@ -1,0 +1,8 @@
+# this doesn't really belong here, it will allow us to
+# push directly into the branch
+cat <<EOF
+  cat <<denyignore >> /$__object_id/config
+[receive]
+        denyCurrentBranch = ignore
+denyignore
+EOF

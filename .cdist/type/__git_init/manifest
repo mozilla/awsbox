@@ -1,0 +1,12 @@
+owner="root"
+[ -f "$__object/parameter/owner" ] && owner="$(cat "$__object/parameter/owner")"
+group="root"
+[ -f "$__object/parameter/group" ] && group="$(cat "$__object/parameter/group")"
+mode="0700"
+[ -f "$__object/parameter/mode" ] && mode="$(cat "$__object/parameter/mode")"
+
+# to initialize an empty git repo, we'll need git
+__package git --state present
+
+# and we need the directory to exist
+__directory $__object_id --owner=$owner --group=$group --mode=$mode

@@ -1,0 +1,1 @@
+echo "su -l -c ./gen_self_signed.sh proxy > $__messages_out 2>&1"

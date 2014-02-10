@@ -1,0 +1,37 @@
+# a nice motd for awsbox
+__motd --source "$__manifest/motd"
+
+# tune the server to make it awesomer.
+__tune_server
+
+# enable extra packages form the epel
+__ini /etc/yum.repos.d/epel.repo --section=epel --key=enabled --value=1
+
+# update all packages
+require="__ini/etc/yum.repos.d/epel.repo" \
+  __update_packages
+
+# install packages we want and need
+require="__update_packages" __package nginx
+require="__update_packages" __package htop
+
+# install node.js
+__nodejs_from_source --node_ver 0.10.25
+
+# drop a file to let the world know that cdist has been configured
+__file /etc/cdist-configured
+
+# create users
+# NOTE: for the app user, we make the home directory executable so that
+#     ~app/ver.txt can be accessed by the proxy (nginx) user for serving.
+#     This supports current deployed sha available @ http://<server>/ver.txt
+__setup_user app --mode=0711
+__setup_user proxy
+
+# setup nginx
+require="__update_packages __setup_user/proxy" \
+  __setup_nginx
+
+# setup git push server deployment to app@<host>:git
+require="__setup_user/app __nodejs_from_source" \
+  __app_git_push

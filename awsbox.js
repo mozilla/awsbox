@@ -633,10 +633,6 @@ verbs.createami = function(args) {
             // the region where the initial AMI is created is a no-op
             if (srcRegion === tgtRegion) return done();
 
-            // ap-southeast-2 seems to have a problem with the AKI of the awsbox image,
-            // let's just skip it for now
-            if ('ap-southeast-2' === tgtRegion) return done();
-
             console.log(" + copying AMI from".data, srcRegion.info, "->".data, tgtRegion.info);
 
             vm.copyAMI(srcRegion, tgtRegion, newAMIId, function(err, regionAMIId) {

@@ -1,0 +1,22 @@
+# max out ipv4 ephemeral port range
+__key_value net.ipv4.ip_local_port_range --value "1024 65535" \
+  --delimiter '=' --file /etc/sysctl.conf
+
+# and up the max connections that can be tracked
+__key_value net.netfilter.nf_conntrack_max --value "262144" \
+  --delimiter '=' --file /etc/sysctl.conf
+
+# drop fin-wait-2 state down to 15s (from 60s)
+__key_value net.ipv4.tcp_fin_timeout --value "15" \
+  --delimiter '=' --file /etc/sysctl.conf
+
+# tell iptables to chill with connection tracking
+__key_value net.netfilter.nf_conntrack_tcp_timeout_established --value "600" \
+  --delimiter '=' --file /etc/sysctl.conf
+
+# drop time_wait down to 2 seconds (!)
+__key_value net.ipv4.netfilter.ip_conntrack_tcp_timeout_time_wait --value "2" \
+  --delimiter '=' --file /etc/sysctl.conf
+
+# raise the open file limit for the app user
+__file /etc/security/limits.conf --source "$__type/files/limits.conf" --state present

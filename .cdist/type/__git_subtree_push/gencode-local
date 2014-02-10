@@ -1,0 +1,3 @@
+remote=$(cat "$__object/parameter/remote")
+
+echo "git subtree push --prefix=\"$__object_id\" $remote master >> $__messages_out 2>&1"
