@@ -4,7 +4,6 @@
 	* update to node.js v0.10.25
 	* cdist based config management to create awsbox AMI from amazon AMI base.
 	* Hello Sydney!  Now we have base AMIs in all regions.
-	* 
 
 0.6.4 -
 	* allow env vars to be supplied in instance specific config.json (thanks @Standard8)
