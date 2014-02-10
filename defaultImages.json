@@ -1,9 +1,10 @@
 {
-  "eu-west-1": "ami-ac6296db",
-  "us-east-1": "ami-6d96ab04",
-  "us-west-1": "ami-d0c4f695",
-  "us-west-2": "ami-3e14740e",
-  "ap-southeast-1": "ami-dc33658e",
-  "sa-east-1": "ami-4f6dcd52",
-  "ap-northeast-1": "ami-69f39a68"
+  "eu-west-1": "ami-aa21d0dd",
+  "us-east-1": "ami-dda298b4",
+  "us-west-1": "ami-12b78a57",
+  "us-west-2": "ami-566b0966",
+  "sa-east-1": "ami-99e24184",
+  "ap-southeast-1": "ami-4adf8918",
+  "ap-southeast-2": "ami-6535ab5f",
+  "ap-northeast-1": "ami-a1c7ada0"
 }
