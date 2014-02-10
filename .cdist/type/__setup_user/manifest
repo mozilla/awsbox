@@ -5,8 +5,6 @@ homedir=/home/$user
 mode="0700"
 [ -f "$__object/parameter/mode" ] && mode="$(cat "$__object/parameter/mode")"
 
-echo mode - $mode
-
 # Create the user account
 __user $user
 
