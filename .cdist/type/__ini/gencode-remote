@@ -85,7 +85,6 @@ if [ "$state" = "present" ]; then
         replaceline $file \$foundsection \$foundsection \$newline
     fi
 else
-echo "state absent" k \$foundkey s \$foundsection
   # if we want the variable not to exist, and it does, we delete it
     if [ "x\$foundkey" != "x" ]; then
         replaceline $file \$(expr \$foundkey - 1) \$foundkey
