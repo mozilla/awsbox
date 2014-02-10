@@ -45,7 +45,7 @@ you can put this wherever you want, simple is good, try this:
 
 ### PRO TIP: make ssh faster
 
-Our friends at cdist [suggest a way][] to make sequential ssh sessions much faster:
+Our friends who created cdist [suggest a way][] to make sequential ssh sessions much faster:
 
   [suggest a way]: http://www.nico.schottelius.org/software/cdist/man/latest/man7/cdist-best-practice.html#_speeding_up_ssh_connections
 
