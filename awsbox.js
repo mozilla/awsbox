@@ -693,7 +693,7 @@ function formatVMList(r) {
   vmNames.forEach(function(k) {
     var v = r[k];
     var dispName = v.name;
-    if (dispName.indexOf(v.instanceId) === -1) dispName += " {" + v.instanceId + "}";
+    if (dispName && dispName.indexOf(v.instanceId) === -1) dispName += " {" + v.instanceId + "}";
     console.log(util.format('  %s:\t\n    %s, %s, launched %s\n',
                             dispName, v.ipAddress, v.instanceType,
                             relativeDate(v.launchTime)));
