@@ -114,6 +114,12 @@ configuration in `~proxy/conf.d/https.conf`
 
 Then restart the proxy.
 
+## How Do I Restart the Proxy?
+
+Log in as ec2-user and run:
+
+    sudo service nginx restart
+
 ## How Do I Force Connections to use SSL?
 
 You can always use HTTP headers (Strict-Transport-Security), but even then, a user's
