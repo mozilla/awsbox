@@ -62,7 +62,7 @@ function doDeploy() {
       if (!commands.length) return cb();
       var cmd = commands.shift();
       console.log(">>", cmd[0]);
-      var c = child_process.exec(cmd[1], cmd[2] ? cmd[2] : {}, function(err, se, so) {
+      var c = child_process.exec(cmd[1], cmd[2] ? cmd[2] : {}, function(err, stdout, stderr) {
         checkErr("while " + cmd[0], err);
         runNextCommand(cb);
       });
@@ -215,7 +215,7 @@ function doDeploy() {
     function allDone() {
       console.log('>> extracting current sha');
       var gitver = "git log -1 --oneline master > $HOME/ver.txt";
-      var cp = child_process.exec(gitver, {}, function(err, se, so) {
+      var cp = child_process.exec(gitver, {}, function(err, stdout, stderr) {
         checkErr("while " + gitver, err);
         console.log('>> all done');
       });
