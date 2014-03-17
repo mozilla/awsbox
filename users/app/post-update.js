@@ -49,7 +49,6 @@ function doDeploy() {
 
     var commands = [
       [ "exporting current code", "git archive --format=tar master | tar -x -C " + newCodeDir ],
-      [ "extract current sha", "git log -1 --oneline master > $HOME/ver.txt" ],
       [ "update dependencies", "npm install --production", {
         cwd: newCodeDir,
         env: {
@@ -214,7 +213,12 @@ function doDeploy() {
     }
 
     function allDone() {
-      console.log('>> all done');
+      console.log('>> extracting current sha');
+      var gitver = "git log -1 --oneline master > $HOME/ver.txt";
+      var cp = child_process.exec(gitver, {}, function(err, se, so) {
+        checkErr("while " + gitver, err);
+        console.log('>> all done');
+      });
     }
   });
 }
