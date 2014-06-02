@@ -61,8 +61,12 @@ function doDeploy() {
     function runNextCommand(cb) {
       if (!commands.length) return cb();
       var cmd = commands.shift();
+      var options = cmd[2] ? cmd[2] : {};
+      // maxBuffer specifies the largest amount of data allowed on stdout or stderr,
+      // if this value is exceeded then the child process is killed
+      options.maxBuffer = 5000 * 1024;
       console.log(">>", cmd[0]);
-      var c = child_process.exec(cmd[1], cmd[2] ? cmd[2] : {}, function(err, stdout, stderr) {
+      var c = child_process.exec(cmd[1], options, function(err, stdout, stderr) {
         checkErr("while " + cmd[0], err);
         runNextCommand(cb);
       });
