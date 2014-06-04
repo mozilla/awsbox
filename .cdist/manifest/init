@@ -16,7 +16,7 @@ require="__update_packages" __package nginx
 require="__update_packages" __package htop
 
 # install node.js
-__nodejs_from_source --node_ver 0.10.25
+__nodejs_from_source --node_ver 0.10.28
 
 # drop a file to let the world know that cdist has been configured
 __file /etc/cdist-configured
