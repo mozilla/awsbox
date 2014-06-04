@@ -23,18 +23,6 @@ existsSync = fs.existsSync || path.existsSync, // existsSync moved path to fs in
 jsel = require('JSONSelect'),
 readJson = require('read-package-json');
 
-// populated by reading json file before commands are exectued, used
-// to tag newly created instances, to help with instance management.
-var awsboxVersion;
-
-// allow multiple different env vars (for the canonical AWS_ID and AWS_SECRET)
-[ 'AWS_KEY', 'AWS_ID', 'AWS_ACCESS_KEY' ].forEach(function(x) {
-  process.env.AWS_ID = process.env.AWS_ID || process.env[x];
-});
-[ 'AWS_SECRET', 'AWS_SECRET_KEY' ].forEach(function(x) {
-  process.env.AWS_SECRET = process.env.AWS_SECRET || process.env[x];
-});
-
 colors.setTheme({
   input: 'grey',
   verbose: 'cyan',
@@ -46,6 +34,31 @@ colors.setTheme({
   debug: 'blue',
   error: 'red'
 });
+
+// populated by reading json file before commands are exectued, used
+// to tag newly created instances, to help with instance management.
+var awsboxVersion;
+
+var awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID;
+var awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+
+// allow multiple different env vars (for the canonical AWS_ID and AWS_SECRET)
+if ( !awsAccessKeyId ) {
+  [ 'AWS_KEY', 'AWS_ID', 'AWS_ACCESS_KEY' ].forEach(function(x) {
+    if ( process.env[x] && !awsAccessKeyId ) {
+      console.warn('DEPRECATED'.warn + ': Using env var %s. Use AWS_ACCESS_KEY_ID instead.', x);
+      awsAccessKeyId = process.env[x];
+    }
+  });
+}
+if ( !awsSecretAccessKey ) {
+  [ 'AWS_SECRET', 'AWS_SECRET_KEY' ].forEach(function(x) {
+    if ( process.env[x] && !awsSecretAccessKey ) {
+      console.warn('DEPRECATED'.warn + ': Using env var %s. Use AWS_SECRET_ACCESS_KEY instead.', x);
+      awsSecretAccessKey = process.env[x];
+    }
+  });
+}
 
 var verbs = {};
 
@@ -883,12 +896,20 @@ var verb = process.argv[2].toLowerCase();
 if (!verbs[verb]) fail(verb !== '-h' ? "no such command: " + verb : null);
 
 // check for required environment variables
-if (!process.env.AWS_ID || !process.env.AWS_SECRET) {
-  fail('Missing aws credentials\nPlease configure the AWS_ID and AWS_SECRET environment variables.');
+if (!awsAccessKeyId || !awsSecretAccessKey) {
+  fail('Missing aws credentials\nPlease configure the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.');
 }
 
 console.log("(using region", config.region + ")");
-aws.createClients(config.region);
+aws.setDefaultCredentials({
+  accessKeyId : awsAccessKeyId,
+  secretAccessKey : awsSecretAccessKey,
+});
+aws.createClients({
+  accessKeyId : awsAccessKeyId,
+  secretAccessKey : awsSecretAccessKey,
+  region : config.region,
+});
 
 // determine awsbox version
 readJson(path.join(__dirname, "package.json"), function(err, data) {
