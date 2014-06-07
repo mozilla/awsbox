@@ -14,6 +14,9 @@ require="__ini/etc/yum.repos.d/epel.repo" \
 # install packages we want and need
 require="__update_packages" __package nginx
 require="__update_packages" __package htop
+require="__update_packages" __package emacs-nox
+require="__update_packages" __package strace
+require="__update_packages" __package mlocate
 
 # install node.js
 __nodejs_from_source --node_ver 0.10.28
