@@ -16,14 +16,16 @@ image is accessible by root via ssh without a password.  To make this possible
 on an amazon AMI you need to make some changes:
 
 1. uncomment `PermitRootLogin yes` in /etc/ssh/sshd_config
-2. restart sshd with `/etc/init.d/sshd restart`
-3. modify `~root/.ssh/authorized_keys` and remove the first part of the line that
+2. uncomment `StrictModes yes` in /etc/ssh/sshd_config (which is the default, but will be set to `no` in step 3)
+3. restart sshd with `/etc/init.d/sshd restart`
+4. modify `~root/.ssh/authorized_keys` and remove the first part of the line that
    tells you to log in as the ec2-user
 
 Verify you can ssh in as root, and you're done.  Here's a little script that you
 can paste in as ec2-user to accomplish the above:
 
     sudo sed -i s/^#PermitRoot/PermitRoot/ /etc/ssh/sshd_config
+    sudo sed -i s/^#StrictModes/StrictModes/ /etc/ssh/sshd_config
     sudo /etc/init.d/sshd restart
     sudo sed -i s/^.*ssh-rsa/ssh-rsa/ /root/.ssh/authorized_keys
 
