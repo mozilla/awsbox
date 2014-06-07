@@ -27,13 +27,16 @@ can paste in as ec2-user to accomplish the above:
     sudo /etc/init.d/sshd restart
     sudo sed -i s/^.*ssh-rsa/ssh-rsa/ /root/.ssh/authorized_keys
 
+Now logout of the VM, and continue with step 2 on your local system.
+
 ### 2. get cdist
 
 [cdist][] is a lightweight alternative to tools like [chef][] and [puppet][].  To
-use it, you need python 3 installed on your system.
+use it, you need [python] python 3 installed on your system.
 
   [chef]: http://www.getchef.com/
   [puppet]: http://puppetlabs.com
+  [python]: https://www.python.org/download/
 
 Next, you should get [version 3.0.7 of cdist][].
 
@@ -58,9 +61,9 @@ Just put this in your `~/.ssh/config`:
 
 ### 3. provision your server
 
-Using cdist, you can now provision the server you created in #1 above:
+Using cdist, you can now provision the server you created in #1 above. From the awsbox repo directory:
 
-    cdist-3.0.7/bin/cdist config -v -c .cdist <server ip>
+    /path/to/cdist-3.0.7/bin/cdist config -v -c .cdist <server public ip>
 
 ### 4. Create a new base image and update the AMI list
 
