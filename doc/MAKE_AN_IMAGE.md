@@ -34,11 +34,11 @@ Now logout of the VM, and continue with step 2 on your local system.
 ### 2. get cdist
 
 [cdist][] is a lightweight alternative to tools like [chef][] and [puppet][].  To
-use it, you need [python] python 3 installed on your system.
+use it, you need [python 3] installed on your system.
 
   [chef]: http://www.getchef.com/
   [puppet]: http://puppetlabs.com
-  [python]: https://www.python.org/download/
+  [python 3]: https://www.python.org/download/
 
 Next, you should get [version 3.0.7 of cdist][].
 
