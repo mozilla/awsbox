@@ -36,7 +36,8 @@ sudo -u proxy rm /home/proxy/{cert,key}.pem
 sudo -u proxy -i /home/proxy/gen_self_signed.sh
 
 # cut ourself off at the knees
-truncate -s 0 ~/.ssh/authorized_keys
+# This is now part of `./awsbox.js createami ...`
+#truncate -s 0 ~/.ssh/authorized_keys
 
 # clean out proxy logs
 sudo find /home/proxy/var/log -type f | sudo xargs --no-run-if-empty /bin/rm -fv

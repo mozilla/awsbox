@@ -31,6 +31,10 @@ __file /etc/cdist-configured
 __setup_user app --mode=0711
 __setup_user proxy
 
+# a script that will do a cleanup before creating the AMI
+__file /home/ec2-user/pristinify.sh --source users/ec2-user/pristinify.sh \
+  --state present --owner=ec2-user --group=ec2-user --mode=0755
+
 # setup nginx
 require="__update_packages __setup_user/proxy" \
   __setup_nginx
