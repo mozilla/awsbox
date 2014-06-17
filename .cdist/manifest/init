@@ -19,7 +19,7 @@ require="__update_packages" __package strace
 require="__update_packages" __package mlocate
 
 # install node.js
-__nodejs_from_source --node_ver 0.10.28
+__nodejs_from_source --node_ver 0.10.29
 
 # drop a file to let the world know that cdist has been configured
 __file /etc/cdist-configured
