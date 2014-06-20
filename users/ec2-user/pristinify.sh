@@ -1,4 +1,3 @@
-sudo rm -rf /tmp/*
 #!/bin/sh
 
 if [ $USER != "ec2-user" ]; then
@@ -19,7 +18,7 @@ fi
 sudo rm -rf /tmp/*
 
 # remove system logs
-sudo rm -f /var/log/*
+sudo find /var/log -type f | sudo xargs --no-run-if-empty /bin/rm -fv
 
 # reinitialize git
 sudo -u app rm -rf /home/app/git
@@ -33,19 +32,20 @@ sudo -u app rm -rf /home/app/{code,code.old,var,tmp}
 sudo -u app -i git reset --hard HEAD
 
 # re-initialize SSL keys
-cd ~proxy
-sudo -u proxy rm ~proxy/*.pem
-sudo -u proxy ./gen_self_signed.sh
+sudo -u proxy rm /home/proxy/{cert,key}.pem
+sudo -u proxy -i /home/proxy/gen_self_signed.sh
 
 # cut ourself off at the knees
-truncate -s 0 ~/.ssh/authorized_keys
+# This is now part of `./awsbox.js createami ...`
+#truncate -s 0 ~/.ssh/authorized_keys
 
 # clean out proxy logs
-sudo rm -rf home/proxy/var/log/*
+sudo find /home/proxy/var/log -type f | sudo xargs --no-run-if-empty /bin/rm -fv
 sudo -u proxy -i git reset --hard HEAD
 
 # remove command history
 sudo rm -f ~{app,ec2-user,proxy}/.bash_history
+sudo find /home/ec2-user/.emacs.d -type f | sudo xargs --no-run-if-empty /bin/rm -fv
 
 # remove packages installed at creation time
 if [ -f $HOME/packages.txt ] ; then
