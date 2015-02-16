@@ -15,7 +15,7 @@
   "dependencies": {
     "awssum-amazon-ec2": ">=1.3.2",
     "awssum-amazon-route53": "1.x",
-    "nice-route53": "0.3.4",
+    "nice-route53": "0.3.5",
     "async": "0.2.x",
     "JSONSelect": "0.4.0",
     "temp": "0.4.0",
